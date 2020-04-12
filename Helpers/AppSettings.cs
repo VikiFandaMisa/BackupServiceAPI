@@ -3,6 +3,7 @@ using System.IO;
 using static System.Environment;
 using Microsoft.Extensions.Configuration;
 using System.Security.Cryptography;
+using Microsoft.AspNetCore.Hosting;
 
 namespace BackupServiceAPI.Helpers
 {
@@ -10,26 +11,27 @@ namespace BackupServiceAPI.Helpers
     {
         public static byte[] Key { get { return _Key; } }
         private static byte[] _Key { get; set; }
-        public static string Issuer { get { return _Issuer; } }
-        private static string _Issuer { get; set; }
-        public static IConfiguration Configuration { get { return _Configuration; } }
-        public static IConfiguration _Configuration { get; set; }
-        public static string ApplicationData { get; set; }
-        public static void Load(IConfiguration config) {
-            _Configuration = config;
+        public static IConfiguration Configuration {
+            get { return _Configuration; }
+            set {
+                _Configuration = value;
 
-            ApplicationData = Path.Combine(
-                GetFolderPath(SpecialFolder.ApplicationData),
-                Path.GetFileNameWithoutExtension(
-                    System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name
-                )
-            );
+                ApplicationData = Path.Combine(
+                    GetFolderPath(SpecialFolder.ApplicationData),
+                    Path.GetFileNameWithoutExtension(
+                        System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name
+                    )
+                );
 
-            if (!Directory.Exists(ApplicationData))
-                Directory.CreateDirectory(ApplicationData);
+                if (!Directory.Exists(ApplicationData))
+                    Directory.CreateDirectory(ApplicationData);
 
-            _Key = _LoadKey();
+                _Key = _LoadKey();
+            }
         }
+        public static IConfiguration _Configuration { get; set; }
+        public static IWebHostEnvironment Environment { get; set; }
+        public static string ApplicationData { get; set; }
         private static byte[] _LoadKey() {
             string keyFile = Path.Combine(ApplicationData, "key");
             // Check if key exists and matches KeyLenght
