@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackupServiceAPI.Models;
@@ -10,7 +11,7 @@ using BackupServiceAPI.Models;
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
+    [ApiController, Authorize]
     public class ComputersController : ControllerBase
     {
         private readonly BackupDBContext _context;
@@ -27,7 +28,7 @@ namespace BackupServiceAPI.Controllers
             return await _context.Computers.ToListAsync();
         }
 
-        // GET: api/Computers/5
+        // GET: api/Computers/5 
         [HttpGet("{id}")]
         public async Task<ActionResult<Computer>> GetComputer(int id)
         {
