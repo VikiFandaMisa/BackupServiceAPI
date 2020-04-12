@@ -3,57 +3,57 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackupServiceAPI.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController, Authorize]
-    public class ComputersController : ControllerBase
+    public class AccountsController : ControllerBase
     {
         private readonly BackupDBContext _context;
 
-        public ComputersController(BackupDBContext context)
+        public AccountsController(BackupDBContext context)
         {
             _context = context;
         }
 
-        // GET: api/Computers
+        // GET: api/Accounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Computer>>> GetComputers()
+        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            return await _context.Computers.ToListAsync();
+            return await _context.Accounts.ToListAsync();
         }
 
-        // GET: api/Computers/5 
+        // GET: api/Accounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Computer>> GetComputer(int id)
+        public async Task<ActionResult<Account>> GetAccount(int id)
         {
-            var computer = await _context.Computers.FindAsync(id);
+            var account = await _context.Accounts.FindAsync(id);
 
-            if (computer == null)
+            if (account == null)
             {
                 return NotFound();
             }
 
-            return computer;
+            return account;
         }
 
-        // PUT: api/Computers/5
+        // PUT: api/Accounts/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutComputer(int id, Computer computer)
+        public async Task<IActionResult> PutAccount(int id, Account account)
         {
-            if (id != computer.ID)
+            if (id != account.ID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(computer).State = EntityState.Modified;
+            _context.Entry(account).State = EntityState.Modified;
 
             try
             {
@@ -61,7 +61,7 @@ namespace BackupServiceAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ComputerExists(id))
+                if (!AccountExists(id))
                 {
                     return NotFound();
                 }
@@ -74,37 +74,37 @@ namespace BackupServiceAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Computers
+        // POST: api/Accounts
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Computer>> PostComputer(Computer computer)
+        public async Task<ActionResult<Account>> PostAccount(Account account)
         {
-            _context.Computers.Add(computer);
+            _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetComputer", new { id = computer.ID }, computer);
+            return CreatedAtAction("GetAccount", new { id = account.ID }, account);
         }
 
-        // DELETE: api/Computers/5
+        // DELETE: api/Accounts/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Computer>> DeleteComputer(int id)
+        public async Task<ActionResult<Account>> DeleteAccount(int id)
         {
-            var computer = await _context.Computers.FindAsync(id);
-            if (computer == null)
+            var account = await _context.Accounts.FindAsync(id);
+            if (account == null)
             {
                 return NotFound();
             }
 
-            _context.Computers.Remove(computer);
+            _context.Accounts.Remove(account);
             await _context.SaveChangesAsync();
 
-            return computer;
+            return account;
         }
 
-        private bool ComputerExists(int id)
+        private bool AccountExists(int id)
         {
-            return _context.Computers.Any(e => e.ID == id);
+            return _context.Accounts.Any(e => e.ID == id);
         }
     }
 }
