@@ -39,16 +39,25 @@ namespace BackupServiceAPI
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
                 .AddJwtBearer(options => {
-                options.TokenValidationParameters = new TokenValidationParameters {
-                    ValidateIssuer = true,
-                    ValidateAudience = true,
-                    ValidateLifetime = true,
-                    ValidateIssuerSigningKey = true,
-                    ValidIssuer = AppSettings.Configuration["Jwt:Issuer"],
-                    ValidAudience = AppSettings.Configuration["Jwt:Issuer"],
-                    IssuerSigningKey = new SymmetricSecurityKey(AppSettings.Key)
-                };
+                    options.TokenValidationParameters = new TokenValidationParameters {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = AppSettings.Configuration["Jwt:Issuer"],
+                        ValidAudience = AppSettings.Configuration["Jwt:Issuer"],
+                        IssuerSigningKey = new SymmetricSecurityKey(AppSettings.Key)
+                    };
                 });
+            
+            services.AddCors(options => {
+                options.AddPolicy("CORSPolicy",
+                    builder => builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader()
+                        .Build()
+                );
+            });
 
             services.AddMvc();
         }
@@ -70,6 +79,8 @@ namespace BackupServiceAPI
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseCors("CORSPolicy");
 
             app.UseEndpoints(endpoints =>
             {
