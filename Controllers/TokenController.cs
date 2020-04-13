@@ -65,7 +65,6 @@ namespace BackupServiceAPI.Controllers
                 foreach (byte b in bytes)
                     passwordHash.AppendFormat("{0:x2}", b);
             }
-            System.Console.WriteLine(passwordHash.ToString());
             return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash.ToString());
         }
     }

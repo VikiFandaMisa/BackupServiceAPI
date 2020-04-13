@@ -5,8 +5,10 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using BackupServiceAPI.Models;
 using Microsoft.AspNetCore.Authorization;
+
+using BackupServiceAPI.Helpers;
+using BackupServiceAPI.Models;
 
 namespace BackupServiceAPI.Controllers
 {
@@ -25,7 +27,7 @@ namespace BackupServiceAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            return await _context.Accounts.ToListAsync();
+            return PrepareAccounts.RemovePasswords(await _context.Accounts.ToListAsync());
         }
 
         // GET: api/Accounts/5
@@ -39,7 +41,7 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
-            return account;
+            return PrepareAccounts.RemovePassword(account);
         }
 
         // PUT: api/Accounts/5
