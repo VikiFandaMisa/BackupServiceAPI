@@ -45,14 +45,9 @@ namespace BackupServiceAPI.Controllers
         // PUT: api/Computers/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
+        [HttpPut]
         public async Task<IActionResult> PutComputer(int id, Computer computer)
         {
-            if (id != computer.ID)
-            {
-                return BadRequest();
-            }
-
             _context.Entry(computer).State = EntityState.Modified;
 
             try
