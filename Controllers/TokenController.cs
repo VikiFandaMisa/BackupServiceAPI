@@ -6,11 +6,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Hosting;
 using System.Text;  
 using System.Security.Cryptography;
 
@@ -33,10 +29,10 @@ namespace BackupServiceAPI.Controllers
         public IActionResult CreateToken([FromBody]Login login) {
             IActionResult response = Unauthorized();
 
-            var user = _Authenticate(login);
+            Account user = _Authenticate(login);
 
             if (user != null) {
-                var tokenString = _BuildToken(user);
+                string tokenString = _BuildToken(user);
                 response = Ok(new { token = tokenString });
             }
 
@@ -44,13 +40,20 @@ namespace BackupServiceAPI.Controllers
         }
 
         private string _BuildToken(Account user) {
-            var key = new SymmetricSecurityKey(AppSettings.Key);
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            Claim[] claims = new[] {
+                new Claim(JwtRegisteredClaimNames.Sub, user.ID.ToString())
+            };
 
-            var token = new JwtSecurityToken(
+            SymmetricSecurityKey key = new SymmetricSecurityKey(AppSettings.Key);
+            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            JwtSecurityToken token = new JwtSecurityToken(
                 AppSettings.Configuration["Jwt:Issuer"],
                 AppSettings.Configuration["Jwt:Issuer"],
-                expires: DateTime.Now.AddDays(7),
+                claims,
+                expires: DateTime.Now.AddDays(
+                    Convert.ToInt32(AppSettings.Configuration["Jwt:DaysValid"])
+                ),
                 signingCredentials: creds
             );
 
