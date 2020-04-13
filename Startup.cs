@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
@@ -22,7 +23,18 @@ namespace BackupServiceAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<DbBackupServiceContext>(opt => opt.UseInMemoryDatabase("db_BackupService"));
+            services.AddDbContextPool<DbBackupServiceContext>(options =>
+                options.UseMySql(
+                    string.Format(
+                        "Server={0};Database={1};User={2};Password={3};",
+                        AppSettings.Configuration["DB:Server"],
+                        AppSettings.Configuration["DB:Database"],
+                        AppSettings.Configuration["DB:User"],
+                        AppSettings.Configuration["DB:Password"]
+                    ),
+                    mySqlOptions => mySqlOptions.ServerVersion(new System.Version(8, 0, 19), ServerType.MySql)
+                )
+            );
             services.AddControllers();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
