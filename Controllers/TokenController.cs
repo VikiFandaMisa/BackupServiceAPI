@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System.Text;  
+using System.Security.Cryptography;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
@@ -56,7 +58,15 @@ namespace BackupServiceAPI.Controllers
         }
 
         private Account _Authenticate(Login login) {
-            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == login.Password);
+            StringBuilder passwordHash = new StringBuilder(512);
+            using (SHA256 sha = SHA256.Create())
+            {  
+                byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(login.Password));
+                foreach (byte b in bytes)
+                    passwordHash.AppendFormat("{0:x2}", b);
+            }
+            System.Console.WriteLine(passwordHash.ToString());
+            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash.ToString());
         }
     }
 }
