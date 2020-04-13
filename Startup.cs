@@ -22,7 +22,7 @@ namespace BackupServiceAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<BackupDBContext>(opt => opt.UseInMemoryDatabase("BackupDB"));
+            services.AddDbContext<DbBackupServiceContext>(opt => opt.UseInMemoryDatabase("db_BackupService"));
             services.AddControllers();
 
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)

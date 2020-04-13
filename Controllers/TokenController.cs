@@ -20,9 +20,9 @@ namespace BackupServiceAPI.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class TokenController : ControllerBase {
-        private readonly BackupDBContext _context;
+        private readonly DbBackupServiceContext _context;
 
-        public TokenController(BackupDBContext context) {
+        public TokenController(DbBackupServiceContext context) {
             _context = context;
         }
 

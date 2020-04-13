@@ -2,13 +2,13 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BackupServiceAPI.Models
 {
-    public class BackupDBContext : DbContext
+    public class DbBackupServiceContext : DbContext
     {
-        public BackupDBContext(DbContextOptions<BackupDBContext> options) : base(options) { }
+        public DbBackupServiceContext(DbContextOptions<DbBackupServiceContext> options) : base(options) { }
 
         /*
         // Controller generation fix
-        public BackupDBContext() {}
+        public DbBackupServiceContext() {}
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             optionsBuilder.UseInMemoryDatabase("BackupDB");

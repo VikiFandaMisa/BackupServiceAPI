@@ -14,9 +14,9 @@ namespace BackupServiceAPI.Controllers
     [ApiController, Authorize]
     public class AccountsController : ControllerBase
     {
-        private readonly BackupDBContext _context;
+        private readonly DbBackupServiceContext _context;
 
-        public AccountsController(BackupDBContext context)
+        public AccountsController(DbBackupServiceContext context)
         {
             _context = context;
         }

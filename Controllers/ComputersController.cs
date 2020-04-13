@@ -14,9 +14,9 @@ namespace BackupServiceAPI.Controllers
     [ApiController, Authorize]
     public class ComputersController : ControllerBase
     {
-        private readonly BackupDBContext _context;
+        private readonly DbBackupServiceContext _context;
 
-        public ComputersController(BackupDBContext context)
+        public ComputersController(DbBackupServiceContext context)
         {
             _context = context;
         }
