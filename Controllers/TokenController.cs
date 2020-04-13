@@ -56,20 +56,6 @@ namespace BackupServiceAPI.Controllers
         }
 
         private Account _Authenticate(Login login) {
-            if (AppSettings.Environment.IsDevelopment() &&
-                login.Username == "test" &&
-                login.Password == "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8") { // "password"
-                return new Account() {
-                    ID = 99999,
-                    Username = "test",
-                    Password = "5e884898da28047151d0e56f8dc6292773603d0d6aabbdd62a11ef721d1542d8",
-                    Admin = true,
-                    Email = "test@test.test",
-                    SendReports = false,
-                    ReportPeriod = ""
-                };
-            }
-
             return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == login.Password);
         }
     }
