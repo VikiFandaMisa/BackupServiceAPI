@@ -36,6 +36,21 @@ namespace BackupServiceAPI.Controllers
 
         }
 
+        [HttpGet("self")]
+        public async Task<ActionResult<Account>> GetSelf()
+        {
+            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+
+            Account account = await _context.Accounts.FindAsync(user.ID);
+
+            if (account == null)
+            {
+                return NotFound();
+            }
+
+            return RemovePassword(account);
+        }
+
         // GET: api/Accounts/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Account>> GetAccount(int id)
