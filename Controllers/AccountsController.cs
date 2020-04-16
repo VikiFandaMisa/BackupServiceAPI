@@ -147,17 +147,17 @@ namespace BackupServiceAPI.Controllers
             return _context.Accounts.Any(e => e.ID == id);
         }
 
-        public Account RemovePassword(Account account) {
+        private Account RemovePassword(Account account) {
             account.Password = "";
             return account;
         }
-        public List<Account> RemovePasswords(List<Account> accounts) {
+        private List<Account> RemovePasswords(List<Account> accounts) {
             for(int i = 0; i < accounts.Count; i++)
                 accounts[i] = RemovePassword(accounts[i]);
             
             return accounts;
         }
-        public async Task<Account> ReturnPassword(Account account) {
+        private async Task<Account> ReturnPassword(Account account) {
             account.Password = (
                 await _context.Accounts.FindAsync(account.ID)
             ).Password;
