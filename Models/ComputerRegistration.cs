@@ -1,7 +1,8 @@
-using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackupServiceAPI.Models {
+    [NotMapped]
     public class ComputerRegistration {
         [MaxLength(256)]
         public string Hostname {get; set;}
