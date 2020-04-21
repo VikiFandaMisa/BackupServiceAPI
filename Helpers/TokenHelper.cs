@@ -9,14 +9,20 @@ using BackupServiceAPI.Models;
 
 namespace BackupServiceAPI.Helpers {
     public static class TokenHelper {
-        public static async Task<Account> GetTokenUser(ClaimsPrincipal claimsPrincipal, DbBackupServiceContext context) {
+        public static async Task<dynamic> GetTokenOwner(ClaimsPrincipal claimsPrincipal, DbBackupServiceContext context) {
             if (claimsPrincipal.HasClaim(c => c.Type == ClaimTypes.NameIdentifier))
             {
-                int id = Convert.ToInt32(
-                    claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value
-                );
+                string[] identifier = claimsPrincipal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':');
+                string type = identifier[0];
+                int id = Convert.ToInt32(identifier[1]);
 
-                return await context.Accounts.FindAsync(id);
+                if (type == "user") {
+                    return await context.Accounts.FindAsync(id);
+                }
+
+                if (type == "computer") {
+                    return await context.Computers.FindAsync(id);
+                }
             }
             return null;
         }

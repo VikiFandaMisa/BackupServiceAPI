@@ -27,6 +27,11 @@ namespace BackupServiceAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Computer>>> GetComputers()
         {
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            if (requestor is Computer)
+                return Unauthorized();
+
             return RemovePasswords(await _context.Computers.ToListAsync());
         }
 
@@ -34,6 +39,11 @@ namespace BackupServiceAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Computer>> GetComputer(int id)
         {
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            if (!(requestor is Computer && requestor.ID == id))
+                return Unauthorized();
+
             var computer = await _context.Computers.FindAsync(id);
 
             if (computer == null)
@@ -48,10 +58,17 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut]
-        public async Task<IActionResult> PutComputer(int id, Computer computer)
+        public async Task<IActionResult> PutComputer(Computer computer)
         {
-            if (computer.Password != "") 
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            if (!(requestor is Computer && requestor.ID == computer.ID))
+                return Unauthorized();
+
+            if (computer.Password != "")
                 computer.Password = TokenHelper.GetPasswordHash(computer.Password);
+            else
+                await ReturnPassword(computer);
 
             _context.Entry(computer).State = EntityState.Modified;
 
@@ -61,7 +78,7 @@ namespace BackupServiceAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!ComputerExists(id))
+                if (!ComputerExists(computer.ID))
                 {
                     return NotFound();
                 }
@@ -78,6 +95,11 @@ namespace BackupServiceAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Computer>> DeleteComputer(int id)
         {
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            if (requestor is Computer)
+                return Unauthorized();
+
             var computer = await _context.Computers.FindAsync(id);
             if (computer == null)
             {
@@ -123,6 +145,13 @@ namespace BackupServiceAPI.Controllers
                 computers[i] = RemovePassword(computers[i]);
             
             return computers;
+        }
+
+        private async Task<Computer> ReturnPassword(Computer computer) {
+            computer.Password = (
+                await _context.Computers.FindAsync(computer.ID)
+            ).Password;
+            return computer;
         }
     }
 }

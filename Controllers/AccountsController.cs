@@ -27,9 +27,9 @@ namespace BackupServiceAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if(!user.Admin)
+            if (requestor is Computer || !requestor.Admin)
                 return Unauthorized();
             
             return RemovePasswords(await _context.Accounts.ToListAsync());
@@ -39,9 +39,12 @@ namespace BackupServiceAPI.Controllers
         [HttpGet("self")]
         public async Task<ActionResult<Account>> GetSelf()
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            Account account = await _context.Accounts.FindAsync(user.ID);
+            if (requestor is Computer)
+                return Unauthorized();
+
+            Account account = await _context.Accounts.FindAsync(requestor.ID);
 
             if (account == null)
             {
@@ -55,9 +58,9 @@ namespace BackupServiceAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Account>> GetAccount(int id)
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if(!user.Admin)
+            if (requestor is Computer || !(requestor.Admin || id == requestor.ID))
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);
@@ -74,16 +77,19 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut]
-        public async Task<IActionResult> PutAccount(int id, Account account)
+        public async Task<IActionResult> PutAccount(Account account)
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if(!(user.Admin || account.ID == user.ID))
+            if (requestor is Computer || !(requestor.Admin || account.ID == requestor.ID))
                 return Unauthorized();
 
-            _context.Entry(
-                await ReturnPassword(account)
-            ).State = EntityState.Modified;
+            if (account.Password != "")
+                account.Password = TokenHelper.GetPasswordHash(account.Password);
+            else
+                await ReturnPassword(account);
+
+            _context.Entry(account).State = EntityState.Modified;
 
             try
             {
@@ -91,7 +97,7 @@ namespace BackupServiceAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!AccountExists(id))
+                if (!AccountExists(account.ID))
                 {
                     return NotFound();
                 }
@@ -110,12 +116,12 @@ namespace BackupServiceAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Account>> PostAccount(Account account)
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if(!user.Admin)
+            if (requestor is Computer || !requestor.Admin)
                 return Unauthorized();
 
-            _context.Accounts.Add(account);
+            _context.Accounts.Add(requestor);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAccount", new { id = account.ID }, RemovePassword(account));
@@ -125,9 +131,9 @@ namespace BackupServiceAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Account>> DeleteAccount(int id)
         {
-            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if(!user.Admin)
+            if (requestor is Computer || !requestor.Admin)
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);

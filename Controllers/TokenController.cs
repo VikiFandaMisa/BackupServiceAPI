@@ -21,27 +21,38 @@ namespace BackupServiceAPI.Controllers
         public TokenController(DbBackupServiceContext context) {
             _context = context;
         }
-        
+
         [AllowAnonymous]
-        [HttpPost]
-        public IActionResult CreateToken([FromBody]Login login) {
+        [HttpPost("user")]
+        public IActionResult CreateTokenUser([FromBody]Login login) {
             IActionResult response = Unauthorized();
 
-            Account user = _Authenticate(login);
+            Account user = _AuthenticateAccount(login);
 
             if (user != null) {
-                string tokenString = _BuildToken(user);
+                string tokenString = _BuildToken(GetClaimsAccount(user));
                 response = Ok(new { token = tokenString });
             }
 
             return response;
         }
 
-        private string _BuildToken(Account user) {
-            Claim[] claims = new[] {
-                new Claim(JwtRegisteredClaimNames.Sub, user.ID.ToString())
-            };
+        [AllowAnonymous]
+        [HttpPost("computer")]
+        public IActionResult CreateTokenComputer([FromBody]Login login) {
+            IActionResult response = Unauthorized();
 
+            Computer computer = _AuthenticateComputer(login);
+
+            if (computer != null) {
+                string tokenString = _BuildToken(GetClaimsComputer(computer));
+                response = Ok(new { token = tokenString });
+            }
+
+            return response;
+        }
+
+        private string _BuildToken(Claim[] claims) {
             SymmetricSecurityKey key = new SymmetricSecurityKey(AppSettings.Key);
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
@@ -57,9 +68,27 @@ namespace BackupServiceAPI.Controllers
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        
+        private Claim[] GetClaimsAccount(Account user) {
+            return new Claim[] {
+                new Claim(JwtRegisteredClaimNames.Sub, string.Format("user:{0}", user.ID.ToString()))
+            };
+        }
 
-        private Account _Authenticate(Login login) {
-            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == TokenHelper.GetPasswordHash(login.Password));
+        private Claim[] GetClaimsComputer(Computer computer) {
+            return new Claim[] {
+                new Claim(JwtRegisteredClaimNames.Sub, string.Format("computer:{0}", computer.ID.ToString()))
+            };
+        }
+
+        private Account _AuthenticateAccount(Login login) {
+            string passwordHash = TokenHelper.GetPasswordHash(login.Password);
+            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
+        }
+
+        private Computer _AuthenticateComputer(Login login) {
+            string passwordHash = TokenHelper.GetPasswordHash(login.Password);
+            return _context.Computers.SingleOrDefault(a => a.ID.ToString() == login.Username && a.Password == passwordHash);
         }
     }
 }
