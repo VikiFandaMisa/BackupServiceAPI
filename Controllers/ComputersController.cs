@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using BackupServiceAPI.Models;
 
+using BackupServiceAPI.Helpers;
+
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
@@ -25,7 +27,7 @@ namespace BackupServiceAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Computer>>> GetComputers()
         {
-            return await _context.Computers.ToListAsync();
+            return RemovePasswords(await _context.Computers.ToListAsync());
         }
 
         // GET: api/Computers/5 
@@ -39,7 +41,7 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
-            return computer;
+            return RemovePassword(computer);
         }
 
         // PUT: api/Computers/5
@@ -48,6 +50,9 @@ namespace BackupServiceAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> PutComputer(int id, Computer computer)
         {
+            if (computer.Password != "") 
+                computer.Password = TokenHelper.GetPasswordHash(computer.Password);
+
             _context.Entry(computer).State = EntityState.Modified;
 
             try
@@ -69,18 +74,6 @@ namespace BackupServiceAPI.Controllers
             return NoContent();
         }
 
-        // POST: api/Computers
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPost]
-        public async Task<ActionResult<Computer>> PostComputer(Computer computer)
-        {
-            _context.Computers.Add(computer);
-            await _context.SaveChangesAsync();
-
-            return CreatedAtAction("GetComputer", new { id = computer.ID }, computer);
-        }
-
         // DELETE: api/Computers/5
         [HttpDelete("{id}")]
         public async Task<ActionResult<Computer>> DeleteComputer(int id)
@@ -94,12 +87,42 @@ namespace BackupServiceAPI.Controllers
             _context.Computers.Remove(computer);
             await _context.SaveChangesAsync();
 
-            return computer;
+            return RemovePassword(computer);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        public async Task<ActionResult<Computer>> RegisterComputer(ComputerRegistration registration)
+        {
+            Computer toAdd = new Computer() {
+                Hostname = registration.Hostname,
+                Password = TokenHelper.GetPasswordHash(registration.Password),
+                LastSeen = DateTime.Now,
+                IP = registration.IP,
+                MAC = registration.MAC,
+                Status = 1
+            };
+            _context.Computers.Add(toAdd);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction("GetComputer", new { id = toAdd.ID }, RemovePassword(toAdd));
         }
 
         private bool ComputerExists(int id)
         {
             return _context.Computers.Any(e => e.ID == id);
+        }
+
+        private static Computer RemovePassword(Computer computer) {
+            computer.Password = "";
+            return computer;
+        }
+
+        private static List<Computer> RemovePasswords(List<Computer> computers) {
+            for(int i = 0; i < computers.Count; i++)
+                computers[i] = RemovePassword(computers[i]);
+            
+            return computers;
         }
     }
 }

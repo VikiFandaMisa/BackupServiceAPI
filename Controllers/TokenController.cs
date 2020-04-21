@@ -7,8 +7,6 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Text;  
-using System.Security.Cryptography;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
@@ -23,7 +21,7 @@ namespace BackupServiceAPI.Controllers
         public TokenController(DbBackupServiceContext context) {
             _context = context;
         }
-
+        
         [AllowAnonymous]
         [HttpPost]
         public IActionResult CreateToken([FromBody]Login login) {
@@ -61,14 +59,7 @@ namespace BackupServiceAPI.Controllers
         }
 
         private Account _Authenticate(Login login) {
-            StringBuilder passwordHash = new StringBuilder(512);
-            using (SHA256 sha = SHA256.Create())
-            {  
-                byte[] bytes = sha.ComputeHash(Encoding.UTF8.GetBytes(login.Password));
-                foreach (byte b in bytes)
-                    passwordHash.AppendFormat("{0:x2}", b);
-            }
-            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash.ToString());
+            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == TokenHelper.GetPasswordHash(login.Password));
         }
     }
 }

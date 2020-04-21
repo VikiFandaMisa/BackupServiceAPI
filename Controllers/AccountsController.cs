@@ -27,7 +27,7 @@ namespace BackupServiceAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             if(!user.Admin)
                 return Unauthorized();
@@ -39,7 +39,7 @@ namespace BackupServiceAPI.Controllers
         [HttpGet("self")]
         public async Task<ActionResult<Account>> GetSelf()
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             Account account = await _context.Accounts.FindAsync(user.ID);
 
@@ -55,7 +55,7 @@ namespace BackupServiceAPI.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<Account>> GetAccount(int id)
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             if(!user.Admin)
                 return Unauthorized();
@@ -76,7 +76,7 @@ namespace BackupServiceAPI.Controllers
         [HttpPut]
         public async Task<IActionResult> PutAccount(int id, Account account)
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             if(!(user.Admin || account.ID == user.ID))
                 return Unauthorized();
@@ -110,7 +110,7 @@ namespace BackupServiceAPI.Controllers
         [HttpPost]
         public async Task<ActionResult<Account>> PostAccount(Account account)
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             if(!user.Admin)
                 return Unauthorized();
@@ -125,7 +125,7 @@ namespace BackupServiceAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult<Account>> DeleteAccount(int id)
         {
-            Account user = await Tokens.GetTokenUser(HttpContext.User, _context);
+            Account user = await TokenHelper.GetTokenUser(HttpContext.User, _context);
 
             if(!user.Admin)
                 return Unauthorized();
@@ -147,11 +147,11 @@ namespace BackupServiceAPI.Controllers
             return _context.Accounts.Any(e => e.ID == id);
         }
 
-        private Account RemovePassword(Account account) {
+        private static Account RemovePassword(Account account) {
             account.Password = "";
             return account;
         }
-        private List<Account> RemovePasswords(List<Account> accounts) {
+        private static List<Account> RemovePasswords(List<Account> accounts) {
             for(int i = 0; i < accounts.Count; i++)
                 accounts[i] = RemovePassword(accounts[i]);
             
