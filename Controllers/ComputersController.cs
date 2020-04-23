@@ -54,6 +54,24 @@ namespace BackupServiceAPI.Controllers
             return RemovePassword(computer);
         }
 
+        [HttpGet("self")]
+        public async Task<ActionResult<Computer>> GetSelf()
+        {
+            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            if (requestor is Account)
+                return Unauthorized();
+
+            Computer computer = await _context.Computers.FindAsync(requestor.ID);
+
+            if (computer == null)
+            {
+                return NotFound();
+            }
+
+            return RemovePassword(computer);
+        }
+
         // PUT: api/Computers/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
