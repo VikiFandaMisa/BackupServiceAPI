@@ -122,7 +122,7 @@ namespace BackupServiceAPI.Controllers
                 LastSeen = DateTime.Now,
                 IP = registration.IP,
                 MAC = registration.MAC,
-                Status = 1
+                Status = ComputerStatus.pending
             };
             _context.Computers.Add(toAdd);
             await _context.SaveChangesAsync();
