@@ -12,8 +12,6 @@ namespace BackupServiceAPI.Models {
         public int ID { get; set;}
         [MaxLength(256)]
         public string Hostname {get; set;}
-        [MaxLength(256)]
-        public string Password {get; set;}
         public DateTime LastSeen {get; set;}
         [MaxLength(256)]
         public string IP {get; set;}

@@ -32,7 +32,7 @@ namespace BackupServiceAPI.Controllers
             if (requestor is Computer)
                 return Unauthorized();
 
-            return RemovePasswords(await _context.Computers.ToListAsync());
+            return await _context.Computers.ToListAsync();
         }
 
         // GET: api/Computers/5 
@@ -51,7 +51,7 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
-            return RemovePassword(computer);
+            return computer;
         }
 
         [HttpGet("self")]
@@ -69,7 +69,7 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
-            return RemovePassword(computer);
+            return computer;
         }
 
         // PUT: api/Computers/5
@@ -82,11 +82,6 @@ namespace BackupServiceAPI.Controllers
 
             if (!(requestor is Computer && requestor.ID == computer.ID))
                 return Unauthorized();
-
-            if (computer.Password != "")
-                computer.Password = TokenHelper.GetPasswordHash(computer.Password);
-            else
-                await ReturnPassword(computer);
 
             _context.Entry(computer).State = EntityState.Modified;
 
@@ -127,7 +122,7 @@ namespace BackupServiceAPI.Controllers
             _context.Computers.Remove(computer);
             await _context.SaveChangesAsync();
 
-            return RemovePassword(computer);
+            return computer;
         }
 
         [AllowAnonymous]
@@ -136,7 +131,6 @@ namespace BackupServiceAPI.Controllers
         {
             Computer toAdd = new Computer() {
                 Hostname = registration.Hostname,
-                Password = TokenHelper.GetPasswordHash(registration.Password),
                 LastSeen = DateTime.Now,
                 IP = registration.IP,
                 MAC = registration.MAC,
@@ -145,31 +139,12 @@ namespace BackupServiceAPI.Controllers
             _context.Computers.Add(toAdd);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetComputer", new { id = toAdd.ID }, RemovePassword(toAdd));
+            return CreatedAtAction("GetComputer", new { id = toAdd.ID }, toAdd);
         }
 
         private bool ComputerExists(int id)
         {
             return _context.Computers.Any(e => e.ID == id);
-        }
-
-        private static Computer RemovePassword(Computer computer) {
-            computer.Password = "";
-            return computer;
-        }
-
-        private static List<Computer> RemovePasswords(List<Computer> computers) {
-            for(int i = 0; i < computers.Count; i++)
-                computers[i] = RemovePassword(computers[i]);
-            
-            return computers;
-        }
-
-        private async Task<Computer> ReturnPassword(Computer computer) {
-            computer.Password = (
-                await _context.Computers.FindAsync(computer.ID)
-            ).Password;
-            return computer;
         }
     }
 }

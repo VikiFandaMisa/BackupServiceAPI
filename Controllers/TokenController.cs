@@ -39,7 +39,7 @@ namespace BackupServiceAPI.Controllers
 
         [AllowAnonymous]
         [HttpPost("computer")]
-        public IActionResult CreateTokenComputer([FromBody]Login login) {
+        public IActionResult CreateTokenComputer([FromBody]LoginComputer login) {
             IActionResult response = Unauthorized();
 
             Computer computer = _AuthenticateComputer(login);
@@ -86,9 +86,8 @@ namespace BackupServiceAPI.Controllers
             return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
         }
 
-        private Computer _AuthenticateComputer(Login login) {
-            string passwordHash = TokenHelper.GetPasswordHash(login.Password);
-            return _context.Computers.SingleOrDefault(a => a.ID.ToString() == login.Username && a.Password == passwordHash);
+        private Computer _AuthenticateComputer(LoginComputer login) {
+            return _context.Computers.SingleOrDefault(a => a.ID == login.ID);
         }
     }
 }
