@@ -3,9 +3,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BackupServiceAPI.Models {
     public enum ComputerStatus {
-        pending,
-        approved,
-        denied
+        pending = 1,
+        approved = 2,
+        denied = 3
     }
     public class Computer {
         [Key]

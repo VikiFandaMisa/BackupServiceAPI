@@ -41,7 +41,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (!(requestor is Computer && requestor.ID == id))
+            if (!(requestor is Computer && requestor.ID == id) && !(requestor is Account))
                 return Unauthorized();
 
             var computer = await _context.Computers.FindAsync(id);
