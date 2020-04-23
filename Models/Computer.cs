@@ -2,6 +2,11 @@ using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace BackupServiceAPI.Models {
+    public enum ComputerStatus {
+        pending,
+        approved,
+        denied
+    }
     public class Computer {
         [Key]
         public int ID { get; set;}
@@ -14,6 +19,6 @@ namespace BackupServiceAPI.Models {
         public string IP {get; set;}
         [MaxLength(256)]
         public string MAC {get; set;}
-        public int Status {get; set;}
+        public ComputerStatus Status {get; set;}
     }
 }

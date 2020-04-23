@@ -34,7 +34,7 @@ namespace BackupServiceAPI.Helpers
         public static string ApplicationData { get; set; }
         private static byte[] _LoadKey() {
             string keyFile = Path.Combine(ApplicationData, "key");
-            // Check if key exists and matches KeyLenght
+            // Check if key exists and matches KeyLength
             if (File.Exists(keyFile)) {
                 byte[] readKey = File.ReadAllBytes(keyFile);
                 if (readKey.Length == Convert.ToInt32(Configuration["JWT:KeyLength"]))
