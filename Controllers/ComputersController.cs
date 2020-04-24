@@ -80,7 +80,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (!(requestor is Computer && requestor.ID == computer.ID))
+            if (!(requestor is Computer && requestor.ID == computer.ID) && !(requestor is Account))
                 return Unauthorized();
 
             _context.Entry(computer).State = EntityState.Modified;
