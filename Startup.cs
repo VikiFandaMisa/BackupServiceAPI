@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -10,6 +11,7 @@ using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
+using BackupServiceAPI.Services;
 
 namespace BackupServiceAPI
 {
@@ -23,6 +25,10 @@ namespace BackupServiceAPI
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddTransient<TokenManagerMiddleware>();
+            services.AddTransient<ITokenManager, Services.TokenManager>();
+            services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
             services.AddDbContextPool<DbBackupServiceContext>(options =>
                 options.UseMySql(
                     string.Format(
@@ -79,6 +85,8 @@ namespace BackupServiceAPI
             app.UseAuthentication();
 
             app.UseAuthorization();
+
+            app.UseMiddleware<TokenManagerMiddleware>();
 
             app.UseCors("CORSPolicy");
 

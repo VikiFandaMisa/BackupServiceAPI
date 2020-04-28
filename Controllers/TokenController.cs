@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
+using BackupServiceAPI.Services;
 
 namespace BackupServiceAPI.Controllers
 {
@@ -17,9 +18,18 @@ namespace BackupServiceAPI.Controllers
     [ApiController]
     public class TokenController : ControllerBase {
         private readonly DbBackupServiceContext _context;
+        private readonly ITokenManager _tokenManager;
 
-        public TokenController(DbBackupServiceContext context) {
+        public TokenController(DbBackupServiceContext context, ITokenManager tokenManager) {
             _context = context;
+            _tokenManager = tokenManager;
+        }
+
+        [HttpDelete]
+        public async Task<IActionResult> InvalidateToken() {
+            await _tokenManager.InvalidateCurrentToken();
+
+            return Ok();
         }
 
         [AllowAnonymous]
@@ -82,7 +92,7 @@ namespace BackupServiceAPI.Controllers
         }
 
         private Account _AuthenticateAccount(Login login) {
-            string passwordHash = TokenHelper.GetPasswordHash(login.Password);
+            string passwordHash = TokenHelper.CreatePasswordHash(login.Password);
             return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
         }
 

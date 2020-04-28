@@ -85,7 +85,7 @@ namespace BackupServiceAPI.Controllers
                 return Unauthorized();
 
             if (account.Password != "")
-                account.Password = TokenHelper.GetPasswordHash(account.Password);
+                account.Password = TokenHelper.CreatePasswordHash(account.Password);
             else
                 await ReturnPassword(account);
 

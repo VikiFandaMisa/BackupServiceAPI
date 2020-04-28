@@ -12,6 +12,7 @@ namespace BackupServiceAPI.Models
         public DbSet<Template> Templates { get; set; }
         public DbSet<Path> Paths { get; set; }
         public DbSet<Account> Accounts { get; set; }
+        public DbSet<InvalidatedToken> TokenBlacklist { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder) {
             // Enum conversions

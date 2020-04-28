@@ -27,7 +27,7 @@ namespace BackupServiceAPI.Helpers {
             return null;
         }
 
-        public static string GetPasswordHash(string password) {
+        public static string CreatePasswordHash(string password) {
             StringBuilder passwordHash = new StringBuilder(512);
             using (SHA256 sha = SHA256.Create())
             {  

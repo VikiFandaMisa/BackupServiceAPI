@@ -10,28 +10,28 @@ namespace BackupServiceAPI.Helpers
     public static class AppSettings
     {
         public static byte[] Key { get { return _Key; } }
-        private static byte[] _Key { get; set; }
+        private static byte[] _Key;
         public static IConfiguration Configuration {
             get { return _Configuration; }
             set {
                 _Configuration = value;
-
-                ApplicationData = Path.Combine(
-                    GetFolderPath(SpecialFolder.ApplicationData),
-                    Path.GetFileNameWithoutExtension(
-                        System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name
-                    )
-                );
-
-                if (!Directory.Exists(ApplicationData))
-                    Directory.CreateDirectory(ApplicationData);
-
                 _Key = _LoadKey();
             }
         }
-        public static IConfiguration _Configuration { get; set; }
+        private static IConfiguration _Configuration;
         public static IWebHostEnvironment Environment { get; set; }
         public static string ApplicationData { get; set; }
+        static AppSettings() {
+            ApplicationData = Path.Combine(
+                GetFolderPath(SpecialFolder.ApplicationData),
+                Path.GetFileNameWithoutExtension(
+                    System.Reflection.Assembly.GetExecutingAssembly().ManifestModule.Name
+                )
+            );
+
+            if (!Directory.Exists(ApplicationData))
+                Directory.CreateDirectory(ApplicationData);
+        }
         private static byte[] _LoadKey() {
             string keyFile = Path.Combine(ApplicationData, "key");
             // Check if key exists and matches KeyLength
