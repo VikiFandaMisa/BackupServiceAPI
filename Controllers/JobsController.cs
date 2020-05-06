@@ -6,7 +6,10 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
+
 using BackupServiceAPI.Models;
+using BackupServiceAPI.Helpers;
 
 namespace BackupServiceAPI.Controllers
 {
@@ -42,6 +45,54 @@ namespace BackupServiceAPI.Controllers
             }
 
             return job;
+        }
+
+        [HttpGet("computer")]
+        [Authorize(Policy="ComputersOnly")]
+        public async Task<ActionResult<TemplateWithPaths[]>> GetComputerJobs()
+        {
+            Computer requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+
+            Template[] templates = _context.Templates.FromSqlRaw(@"
+                SELECT
+                    t.ID,
+                    t.Name,
+                    t.Period,
+                    t.Type,
+                    t.TargetFileType,
+                    t.Start,
+                    t.End,
+                    t.Paused,
+                    t.Retention
+                FROM Templates t
+                    INNER JOIN Jobs j ON t.ID = j.TemplateID
+                WHERE ComputerID = " + requestor.ID
+            ).ToArray();
+
+            if (templates.Length == 0)
+            {
+                return NotFound();
+            }
+
+            TemplateWithPaths[] templatesWithPaths = new TemplateWithPaths[templates.Length];
+            for (int i = 0; i < templates.Length; i++)
+            {
+                templatesWithPaths[i] = TemplateWithPaths.FromTemplate(templates[i]);
+                Path[] paths = _context.Paths.FromSqlRaw(@"
+                    SELECT *
+                    FROM Paths p
+                    WHERE TemplateID = " + templates[i].ID
+                ).ToArray();
+                foreach (Path path in paths)
+                {
+                    if (path.Source)
+                        templatesWithPaths[i].Sources.Add(path);
+                    else 
+                        templatesWithPaths[i].Targets.Add(path);
+                }
+            }
+
+            return templatesWithPaths;
         }
 
         // PUT: api/Jobs/5
