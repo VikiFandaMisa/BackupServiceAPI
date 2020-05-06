@@ -69,11 +69,6 @@ namespace BackupServiceAPI.Controllers
                 WHERE ComputerID = " + requestor.ID
             ).ToArray();
 
-            if (templates.Length == 0)
-            {
-                return NotFound();
-            }
-
             TemplateWithPaths[] templatesWithPaths = new TemplateWithPaths[templates.Length];
             for (int i = 0; i < templates.Length; i++)
             {
