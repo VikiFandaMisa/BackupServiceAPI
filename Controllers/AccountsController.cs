@@ -13,7 +13,7 @@ using BackupServiceAPI.Models;
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController, Authorize]
+    [ApiController, Authorize(Policy = "UsersOnly")]
     public class AccountsController : ControllerBase
     {
         private readonly DbBackupServiceContext _context;
@@ -29,7 +29,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (requestor is Computer || !requestor.Admin)
+            if (!requestor.Admin)
                 return Unauthorized();
             
             return RemovePasswords(await _context.Accounts.ToListAsync());
@@ -40,9 +40,6 @@ namespace BackupServiceAPI.Controllers
         public async Task<ActionResult<Account>> GetSelf()
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
-
-            if (requestor is Computer)
-                return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(requestor.ID);
 
@@ -60,7 +57,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (requestor is Computer || !(requestor.Admin || id == requestor.ID))
+            if (!(requestor.Admin || id == requestor.ID))
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);
@@ -81,7 +78,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (requestor is Computer || !(requestor.Admin || account.ID == requestor.ID))
+            if (!(requestor.Admin || account.ID == requestor.ID))
                 return Unauthorized();
 
             if (account.Password != "")
@@ -118,10 +115,10 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (requestor is Computer || !requestor.Admin)
+            if (!requestor.Admin)
                 return Unauthorized();
 
-            _context.Accounts.Add(requestor);
+            _context.Accounts.Add(account);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetAccount", new { id = account.ID }, RemovePassword(account));
@@ -133,7 +130,7 @@ namespace BackupServiceAPI.Controllers
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (requestor is Computer || !requestor.Admin)
+            if (!requestor.Admin)
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);

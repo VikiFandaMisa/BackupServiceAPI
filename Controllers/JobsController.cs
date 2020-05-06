@@ -23,6 +23,7 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Jobs
         [HttpGet]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
         {
             return await _context.Jobs.ToListAsync();
@@ -30,6 +31,7 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Jobs/5
         [HttpGet("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<Job>> GetJob(int id)
         {
             var job = await _context.Jobs.FindAsync(id);
@@ -46,6 +48,7 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<IActionResult> PutJob(int id, Job job)
         {
             if (id != job.ID)
@@ -78,6 +81,7 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<Job>> PostJob(Job job)
         {
             _context.Jobs.Add(job);
@@ -88,6 +92,7 @@ namespace BackupServiceAPI.Controllers
 
         // DELETE: api/Jobs/5
         [HttpDelete("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<Job>> DeleteJob(int id)
         {
             var job = await _context.Jobs.FindAsync(id);

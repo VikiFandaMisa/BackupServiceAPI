@@ -11,7 +11,7 @@ using BackupServiceAPI.Models;
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController, Authorize]
+    [ApiController, Authorize(Policy="UsersOnly")]
     public class TemplatesController : ControllerBase
     {
         private readonly DbBackupServiceContext _context;

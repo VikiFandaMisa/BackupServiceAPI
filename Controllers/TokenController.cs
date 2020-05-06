@@ -15,7 +15,7 @@ using BackupServiceAPI.Services;
 namespace BackupServiceAPI.Controllers
 {
     [Route("api/[controller]")]
-    [ApiController]
+    [ApiController, Authorize]
     public class TokenController : ControllerBase {
         private readonly DbBackupServiceContext _context;
         private readonly ITokenManager _tokenManager;
@@ -40,7 +40,7 @@ namespace BackupServiceAPI.Controllers
             Account user = _AuthenticateAccount(login);
 
             if (user != null) {
-                string tokenString = _BuildToken(GetClaimsAccount(user));
+                string tokenString = _BuildToken(GetClaims("user", user.ID));
                 response = Ok(new { token = tokenString });
             }
 
@@ -55,7 +55,7 @@ namespace BackupServiceAPI.Controllers
             Computer computer = _AuthenticateComputer(login);
 
             if (computer != null) {
-                string tokenString = _BuildToken(GetClaimsComputer(computer));
+                string tokenString = _BuildToken(GetClaims("computer", computer.ID));
                 response = Ok(new { token = tokenString });
             }
 
@@ -79,15 +79,9 @@ namespace BackupServiceAPI.Controllers
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
         
-        private Claim[] GetClaimsAccount(Account user) {
+        private Claim[] GetClaims(string type, int id) {
             return new Claim[] {
-                new Claim(JwtRegisteredClaimNames.Sub, string.Format("user:{0}", user.ID.ToString()))
-            };
-        }
-
-        private Claim[] GetClaimsComputer(Computer computer) {
-            return new Claim[] {
-                new Claim(JwtRegisteredClaimNames.Sub, string.Format("computer:{0}", computer.ID.ToString()))
+                new Claim(JwtRegisteredClaimNames.Sub, type + ':' + id.ToString())
             };
         }
 

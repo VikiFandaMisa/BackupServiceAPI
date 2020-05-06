@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Linq;
+using System.Security.Claims;
 
 using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
@@ -56,6 +58,21 @@ namespace BackupServiceAPI
                     };
                 });
             
+            services.AddAuthorization(options => {
+                options.AddPolicy("UsersOnly", policy =>
+                    policy.RequireAssertion(context => 
+                        context.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) &&
+                        context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':')[0] == "user"
+                    )
+                );
+                options.AddPolicy("ComputersOnly", policy =>
+                    policy.RequireAssertion(context =>
+                        context.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) &&
+                        context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':')[0] == "computer"
+                    )
+                );
+            });
+            
             services.AddCors(options => {
                 options.AddPolicy("CORSPolicy",
                     builder => builder.AllowAnyOrigin()
@@ -78,17 +95,17 @@ namespace BackupServiceAPI
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseCors("CORSPolicy");
+
             app.UseHttpsRedirection();
 
             app.UseRouting();
 
             app.UseAuthentication();
 
-            app.UseAuthorization();
-
             app.UseMiddleware<TokenManagerMiddleware>();
 
-            app.UseCors("CORSPolicy");
+            app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
             {

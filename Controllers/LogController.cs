@@ -23,6 +23,7 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Log
         [HttpGet]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<IEnumerable<LogRecord>>> GetLog()
         {
             return await _context.Log.ToListAsync();
@@ -30,6 +31,7 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Log/5
         [HttpGet("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<LogRecord>> GetLogRecord(int id)
         {
             var logRecord = await _context.Log.FindAsync(id);
@@ -46,6 +48,7 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<IActionResult> PutLogRecord(int id, LogRecord logRecord)
         {
             if (id != logRecord.ID)
@@ -78,6 +81,7 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<LogRecord>> PostLogRecord(LogRecord logRecord)
         {
             _context.Log.Add(logRecord);
@@ -88,6 +92,7 @@ namespace BackupServiceAPI.Controllers
 
         // DELETE: api/Log/5
         [HttpDelete("{id}")]
+        [Authorize(Policy="UsersOnly")]
         public async Task<ActionResult<LogRecord>> DeleteLogRecord(int id)
         {
             var logRecord = await _context.Log.FindAsync(id);

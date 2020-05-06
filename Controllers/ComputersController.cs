@@ -25,25 +25,17 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Computers
         [HttpGet]
+        [Authorize(Policy = "UsersOnly")]
         public async Task<ActionResult<IEnumerable<Computer>>> GetComputers()
         {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
-
-            if (requestor is Computer)
-                return Unauthorized();
-
             return await _context.Computers.ToListAsync();
         }
 
         // GET: api/Computers/5 
         [HttpGet("{id}")]
+        [Authorize(Policy = "UsersOnly")]
         public async Task<ActionResult<Computer>> GetComputer(int id)
         {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
-
-            if (!(requestor is Computer && requestor.ID == id) && !(requestor is Account))
-                return Unauthorized();
-
             var computer = await _context.Computers.FindAsync(id);
 
             if (computer == null)
@@ -55,12 +47,10 @@ namespace BackupServiceAPI.Controllers
         }
 
         [HttpGet("self")]
+        [Authorize(Policy = "ComputersOnly")]
         public async Task<ActionResult<Computer>> GetSelf()
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
-
-            if (requestor is Account)
-                return Unauthorized();
 
             Computer computer = await _context.Computers.FindAsync(requestor.ID);
 
@@ -72,15 +62,13 @@ namespace BackupServiceAPI.Controllers
             return computer;
         }
 
-        // PUT: api/Computers/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut]
-        public async Task<IActionResult> PutComputer(Computer computer)
+        [HttpPut("self")]
+        [Authorize(Policy = "ComputersOnly")]
+        public async Task<ActionResult<Computer>> PutSelf(Computer computer)
         {
             var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
-            if (!(requestor is Computer && requestor.ID == computer.ID) && !(requestor is Account))
+            if (requestor.Id != computer.ID)
                 return Unauthorized();
 
             _context.Entry(computer).State = EntityState.Modified;
@@ -104,29 +92,8 @@ namespace BackupServiceAPI.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Computers/5
-        [HttpDelete("{id}")]
-        public async Task<ActionResult<Computer>> DeleteComputer(int id)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
-
-            if (requestor is Computer)
-                return Unauthorized();
-
-            var computer = await _context.Computers.FindAsync(id);
-            if (computer == null)
-            {
-                return NotFound();
-            }
-
-            _context.Computers.Remove(computer);
-            await _context.SaveChangesAsync();
-
-            return computer;
-        }
-
-        [AllowAnonymous]
         [HttpPost("register")]
+        [AllowAnonymous]
         public async Task<ActionResult<Computer>> RegisterComputer(ComputerRegistration registration)
         {
             Computer toAdd = new Computer() {
@@ -140,6 +107,51 @@ namespace BackupServiceAPI.Controllers
             await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetComputer", new { id = toAdd.ID }, toAdd);
+        }
+
+        // PUT: api/Computers/5
+        // To protect from overposting attacks, enable the specific properties you want to bind to, for
+        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
+        [HttpPut]
+        [Authorize(Policy = "UsersOnly")]
+        public async Task<IActionResult> PutComputer(Computer computer)
+        {
+            _context.Entry(computer).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ComputerExists(computer.ID))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // DELETE: api/Computers/5
+        [HttpDelete("{id}")]
+        [Authorize(Policy = "UsersOnly")]
+        public async Task<ActionResult<Computer>> DeleteComputer(int id)
+        {
+            var computer = await _context.Computers.FindAsync(id);
+            if (computer == null)
+            {
+                return NotFound();
+            }
+
+            _context.Computers.Remove(computer);
+            await _context.SaveChangesAsync();
+
+            return computer;
         }
 
         private bool ComputerExists(int id)
