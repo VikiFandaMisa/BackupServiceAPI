@@ -49,7 +49,7 @@ namespace BackupServiceAPI.Controllers
 
         [HttpGet("computer")]
         [Authorize(Policy="ComputersOnly")]
-        public async Task<ActionResult<TemplateWithPaths[]>> GetComputerJobs()
+        public async Task<ActionResult<TemplateForComputer[]>> GetComputerJobs()
         {
             Computer requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
@@ -66,28 +66,33 @@ namespace BackupServiceAPI.Controllers
                     t.Retention
                 FROM Templates t
                     INNER JOIN Jobs j ON t.ID = j.TemplateID
-                WHERE ComputerID = " + requestor.ID
+                WHERE t.Paused != true AND ComputerID = " + requestor.ID
             ).ToArray();
 
-            TemplateWithPaths[] templatesWithPaths = new TemplateWithPaths[templates.Length];
+            TemplateForComputer[] templatesForComputer = new TemplateForComputer[templates.Length];
             for (int i = 0; i < templates.Length; i++)
             {
-                templatesWithPaths[i] = TemplateWithPaths.FromTemplate(templates[i]);
+                TemplateForComputer templateReturn = TemplateForComputer.FromTemplate(templates[i]);
+                templatesForComputer[i] = templateReturn;
+
+                templateReturn.Schedule = TemplatesHelper.GetSchedule(templates[i].Period);
+
                 Path[] paths = _context.Paths.FromSqlRaw(@"
                     SELECT *
                     FROM Paths p
                     WHERE TemplateID = " + templates[i].ID
                 ).ToArray();
+
                 foreach (Path path in paths)
                 {
                     if (path.Source)
-                        templatesWithPaths[i].Sources.Add(path);
+                        templatesForComputer[i].Sources.Add(path);
                     else 
-                        templatesWithPaths[i].Targets.Add(path);
+                        templatesForComputer[i].Targets.Add(path);
                 }
             }
 
-            return templatesWithPaths;
+            return templatesForComputer;
         }
 
         // PUT: api/Jobs/5
