@@ -23,14 +23,20 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Templates
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Template>>> GetTemplates()
+        public async Task<ActionResult<IEnumerable<TemplateOut>>> GetTemplates()
         {
-            return await _context.Templates.ToListAsync();
+            List<Template> templates = await _context.Templates.ToListAsync();
+
+            TemplateOut[] templateOut = new TemplateOut[templates.Count];
+            for (int i = 0; i < templates.Count; i++)
+                templateOut[i] = TemplateToTemplateOut(templates[i]);
+
+            return templateOut;
         }
 
         // GET: api/Templates/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Template>> GetTemplate(int id)
+        public async Task<ActionResult<TemplateOut>> GetTemplate(int id)
         {
             var template = await _context.Templates.FindAsync(id);
 
@@ -39,21 +45,26 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
-            return template;
+            return TemplateToTemplateOut(template);
         }
 
         // PUT: api/Templates/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTemplate(int id, Template template)
+        public async Task<IActionResult> PutTemplate(int id, TemplateOut templateOut)
         {
-            if (id != template.ID)
+            if (id != templateOut.ID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(template).State = EntityState.Modified;
+            var unpacked = TemplateOutToTemplateAndPaths(templateOut);
+
+            _context.Entry(unpacked.Item1).State = EntityState.Modified;
+
+            foreach(Path p in unpacked.Item2)
+                _context.Entry(p).State = EntityState.Modified;
 
             try
             {
@@ -78,17 +89,25 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Template>> PostTemplate(Template template)
+        public async Task<ActionResult<TemplateOut>> PostTemplate(TemplateOut templateOut)
         {
-            _context.Templates.Add(template);
+            var unpacked = TemplateOutToTemplateAndPaths(templateOut);
+
+            _context.Templates.Add(unpacked.Item1);
+
+            foreach(Path p in unpacked.Item2)
+                 _context.Paths.Add(p);
+
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetTemplate", new { id = template.ID }, template);
+            TemplateOut templateRet = TemplateToTemplateOut(unpacked.Item1);
+
+            return CreatedAtAction("GetTemplate", new { id = templateRet.ID }, templateRet);
         }
 
         // DELETE: api/Templates/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Template>> DeleteTemplate(int id)
+        public async Task<ActionResult<TemplateOut>> DeleteTemplate(int id)
         {
             var template = await _context.Templates.FindAsync(id);
             if (template == null)
@@ -96,15 +115,47 @@ namespace BackupServiceAPI.Controllers
                 return NotFound();
             }
 
+            TemplateOut templateOut = TemplateToTemplateOut(template);
+
+            foreach(Path p in GetPaths(template.ID))
+                _context.Paths.Remove(p);
+
             _context.Templates.Remove(template);
+
             await _context.SaveChangesAsync();
 
-            return template;
+            return templateOut;
         }
 
         private bool TemplateExists(int id)
         {
             return _context.Templates.Any(e => e.ID == id);
         }
+
+        private TemplateOut TemplateToTemplateOut(Template template) {
+            TemplateOut tOut = TemplateOut.FromTemplate(template);
+
+            foreach (Path path in GetPaths(template.ID)) {
+                if (path.Source)
+                    tOut.Sources.Add(path);
+                else 
+                    tOut.Targets.Add(path);
+            }
+
+            return tOut;
+        }
+        private Path[] GetPaths(int templateID) {
+            return _context.Paths.FromSqlRaw(@"
+                SELECT *
+                FROM Paths p
+                WHERE TemplateID = " + templateID
+            ).ToArray();
+        }
+        private (Template, List<Path>) TemplateOutToTemplateAndPaths(TemplateOut templateOut) {
+            Template template = templateOut.ToTemplate();
+            List<Path> paths = templateOut.Sources.ToList();
+            paths.AddRange(templateOut.Targets);
+            return (template, paths);
+        } 
     }
 }
