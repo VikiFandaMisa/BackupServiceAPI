@@ -35,7 +35,7 @@ namespace BackupServiceAPI.Services
             _dbContext.TokenBlacklist.Add(new InvalidatedToken() {
                 Token = token,
                 // Could be less if true expiration would be extracted from token
-                Expires = DateTime.UtcNow.AddDays(Convert.ToInt32(AppSettings.Configuration["JWT:DaysValid"]))
+                Expires = DateTime.Now.AddDays(Convert.ToInt32(AppSettings.Configuration["JWT:DaysValid"]))
             });
             await _dbContext.SaveChangesAsync();
         }

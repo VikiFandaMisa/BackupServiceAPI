@@ -9,7 +9,7 @@ namespace BackupServiceAPI.Helpers {
             var schedule = new List<DateTime>();
             var crontab = CrontabSchedule.Parse(cron);
 
-            start = crontab.GetNextOccurrences(start, DateTime.UtcNow).Last();
+            start = crontab.GetNextOccurrences(start, DateTime.Now).Last();
 
             schedule = crontab.GetNextOccurrences(start, end)
                 .ToList()
