@@ -72,7 +72,7 @@ namespace BackupServiceAPI.Controllers
             JobOut[] jobsOut = new JobOut[templates.Length];
             for (int i = 0; i < templates.Length; i++)
             {
-                var schedule = TemplatesHelper.GetSchedule(templates[i].Period);
+                var schedule = TemplatesHelper.GetSchedule(templates[i].Period, templates[i].Start, templates[i].End);
                 JobOut templateReturn = JobOut.FromTemplate(templates[i], 0, schedule); //LOL FIX THIS LATER
                 jobsOut[i] = templateReturn;
 

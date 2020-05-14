@@ -1,17 +1,20 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NCrontab;
 
 namespace BackupServiceAPI.Helpers {
     public static class TemplatesHelper {
-        public static DateTime[] GetSchedule(string cron) {
-            var schedule = new DateTime[Convert.ToInt32(AppSettings.Configuration["Jobs:ScheduleLength"])];
+        public static List<DateTime> GetSchedule(string cron, DateTime start, DateTime end) {
+            var schedule = new List<DateTime>();
             var crontab = CrontabSchedule.Parse(cron);
-            DateTime from = DateTime.UtcNow;
-            for (int i = 0; i < schedule.Length; i++)
-            {
-                schedule[i] = crontab.GetNextOccurrence(from);
-                from = schedule[i];
-            }
+
+            start = crontab.GetNextOccurrences(start, DateTime.UtcNow).Last();
+
+            schedule = crontab.GetNextOccurrences(start, end)
+                .ToList()
+                .GetRange(0, Convert.ToInt32(AppSettings.Configuration["Jobs:ScheduleLength"]));
+            
             return schedule;
         }
     }
