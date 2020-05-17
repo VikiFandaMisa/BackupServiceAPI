@@ -3,8 +3,8 @@ using System;
 
 namespace BackupServiceAPI.Models {
     public class TemplateOut : Template {
-        public List<Path> Sources {get; set;}
-        public List<Path> Targets {get; set;}
+        public List<PathOut> Sources {get; set;}
+        public List<PathOut> Targets {get; set;}
 
         public static TemplateOut FromTemplate(Template template) {
             return new TemplateOut() {
@@ -17,8 +17,8 @@ namespace BackupServiceAPI.Models {
                 End = template.End,
                 Paused = template.Paused,
                 Retention = template.Retention,
-                Sources = new List<Path>(),
-                Targets = new List<Path>(),
+                Sources = new List<PathOut>(),
+                Targets = new List<PathOut>(),
             };
         }
         

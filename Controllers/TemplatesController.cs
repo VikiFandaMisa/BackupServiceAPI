@@ -95,12 +95,16 @@ namespace BackupServiceAPI.Controllers
 
             _context.Templates.Add(unpacked.Item1);
 
-            foreach(Path p in unpacked.Item2)
-                 _context.Paths.Add(p);
-
             await _context.SaveChangesAsync();
 
             TemplateOut templateRet = TemplateToTemplateOut(unpacked.Item1);
+
+            foreach(Path p in unpacked.Item2) {
+                p.TemplateID = templateRet.ID;
+                _context.Paths.Add(p);
+            }
+
+            await _context.SaveChangesAsync();
 
             return CreatedAtAction("GetTemplate", new { id = templateRet.ID }, templateRet);
         }
@@ -137,9 +141,9 @@ namespace BackupServiceAPI.Controllers
 
             foreach (Path path in GetPaths(template.ID)) {
                 if (path.Source)
-                    tOut.Sources.Add(path);
+                    tOut.Sources.Add(PathOut.FromPath(path));
                 else 
-                    tOut.Targets.Add(path);
+                    tOut.Targets.Add(PathOut.FromPath(path));
             }
 
             return tOut;
@@ -153,8 +157,26 @@ namespace BackupServiceAPI.Controllers
         }
         private (Template, List<Path>) TemplateOutToTemplateAndPaths(TemplateOut templateOut) {
             Template template = templateOut.ToTemplate();
-            List<Path> paths = templateOut.Sources.ToList();
-            paths.AddRange(templateOut.Targets);
+            List<Path> paths = new List<Path>();
+
+            foreach(PathOut p in templateOut.Sources)
+                paths.Add(new Path() {
+                    ID = p.ID,
+                    TemplateID = template.ID,
+                    FTP = p.FTP,
+                    Source = true,
+                    Directory = p.Directory
+                });
+                
+            foreach(PathOut p in templateOut.Targets)
+                paths.Add(new Path() {
+                    ID = p.ID,
+                    TemplateID = template.ID,
+                    FTP = p.FTP,
+                    Source = false,
+                    Directory = p.Directory
+                });
+
             return (template, paths);
         } 
     }
