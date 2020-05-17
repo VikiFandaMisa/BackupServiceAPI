@@ -160,22 +160,10 @@ namespace BackupServiceAPI.Controllers
             List<Path> paths = new List<Path>();
 
             foreach(PathOut p in templateOut.Sources)
-                paths.Add(new Path() {
-                    ID = p.ID,
-                    TemplateID = template.ID,
-                    FTP = p.FTP,
-                    Source = true,
-                    Directory = p.Directory
-                });
+                paths.Add(p.ToPath(template.ID, true));
                 
             foreach(PathOut p in templateOut.Targets)
-                paths.Add(new Path() {
-                    ID = p.ID,
-                    TemplateID = template.ID,
-                    FTP = p.FTP,
-                    Source = false,
-                    Directory = p.Directory
-                });
+                paths.Add(p.ToPath(template.ID, false));
 
             return (template, paths);
         } 
