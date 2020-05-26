@@ -63,8 +63,29 @@ namespace BackupServiceAPI.Controllers
 
             _context.Entry(unpacked.Item1).State = EntityState.Modified;
 
-            foreach(Path p in unpacked.Item2)
-                _context.Entry(p).State = EntityState.Modified;
+            var storedPaths = _context.Paths.FromSqlRaw(@"
+                SELECT *
+                FROM Paths p
+                WHERE TemplateID = " + unpacked.Item1.ID
+            ).ToList();
+
+            foreach (Path p in unpacked.Item2) {
+                var stored = false;
+                for (int i = 0; i < storedPaths.Count; i++)
+                    if (storedPaths[i].ID == p.ID) {
+                        stored = true;
+                        storedPaths.RemoveAt(i);
+                        _context.Entry(p).State = EntityState.Modified;
+                        break;
+                    }
+                if (!stored) {
+                    _context.Paths.Add(p);
+                }
+            }
+
+            foreach (Path deleted in storedPaths) {
+                _context.Paths.Remove(deleted);
+            }
 
             try
             {

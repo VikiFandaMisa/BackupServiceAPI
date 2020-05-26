@@ -7,13 +7,20 @@ namespace BackupServiceAPI.Helpers {
     public static class TemplatesHelper {
         public static List<DateTime> GetSchedule(string cron, DateTime start, DateTime end) {
             var schedule = new List<DateTime>();
+            var scheduleLength = Convert.ToInt32(AppSettings.Configuration["Jobs:ScheduleLength"]);
             var crontab = CrontabSchedule.Parse(cron);
 
-            start = crontab.GetNextOccurrences(start, DateTime.Now).Last();
+            if (DateTime.Now > start)
+                start = crontab.GetNextOccurrences(start, DateTime.Now).Last();
 
-            schedule = crontab.GetNextOccurrences(start, end)
-                .ToList()
-                .GetRange(0, Convert.ToInt32(AppSettings.Configuration["Jobs:ScheduleLength"]));
+            for(int i = 0; i < scheduleLength; i++) {
+                var add = crontab.GetNextOccurrence(start);
+                if (add < end)
+                    schedule.Add(add);
+                else 
+                    break;
+                start = add;
+            }
             
             return schedule;
         }
