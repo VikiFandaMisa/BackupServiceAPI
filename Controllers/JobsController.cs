@@ -54,16 +54,7 @@ namespace BackupServiceAPI.Controllers
             Computer requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
 
             Template[] templates = _context.Templates.FromSqlRaw(@"
-                SELECT
-                    t.ID,
-                    t.Name,
-                    t.Period,
-                    t.Type,
-                    t.TargetFileType,
-                    t.Start,
-                    t.End,
-                    t.Paused,
-                    t.Retention
+                SELECT t.*
                 FROM Templates t
                     INNER JOIN Jobs j ON t.ID = j.TemplateID
                 WHERE t.Paused != true AND j.Active = true AND ComputerID = " + requestor.ID
