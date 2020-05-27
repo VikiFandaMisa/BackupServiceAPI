@@ -24,7 +24,7 @@ namespace BackupServiceAPI.Controllers
         // GET: api/Log
         [HttpGet]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<IEnumerable<LogRecord>>> GetLog()
+        public async Task<ActionResult<IEnumerable<LogItem>>> GetLog()
         {
             return await _context.Log.ToListAsync();
         }
@@ -32,16 +32,16 @@ namespace BackupServiceAPI.Controllers
         // GET: api/Log/5
         [HttpGet("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogRecord>> GetLogRecord(int id)
+        public async Task<ActionResult<LogItem>> GetLogItem(int id)
         {
-            var logRecord = await _context.Log.FindAsync(id);
+            var logItem = await _context.Log.FindAsync(id);
 
-            if (logRecord == null)
+            if (logItem == null)
             {
                 return NotFound();
             }
 
-            return logRecord;
+            return logItem;
         }
 
         // PUT: api/Log/5
@@ -49,14 +49,14 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<IActionResult> PutLogRecord(int id, LogRecord logRecord)
+        public async Task<IActionResult> PutLogItem(int id, LogItem logItem)
         {
-            if (id != logRecord.ID)
+            if (id != logItem.ID)
             {
                 return BadRequest();
             }
 
-            _context.Entry(logRecord).State = EntityState.Modified;
+            _context.Entry(logItem).State = EntityState.Modified;
 
             try
             {
@@ -64,7 +64,7 @@ namespace BackupServiceAPI.Controllers
             }
             catch (DbUpdateConcurrencyException)
             {
-                if (!LogRecordExists(id))
+                if (!LogItemExists(id))
                 {
                     return NotFound();
                 }
@@ -82,32 +82,32 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogRecord>> PostLogRecord(LogRecord logRecord)
+        public async Task<ActionResult<LogItem>> PostLogItem(LogItem logItem)
         {
-            _context.Log.Add(logRecord);
+            _context.Log.Add(logItem);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetLogRecord", new { id = logRecord.ID }, logRecord);
+            return CreatedAtAction("GetLogItem", new { id = logItem.ID }, logItem);
         }
 
         // DELETE: api/Log/5
         [HttpDelete("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogRecord>> DeleteLogRecord(int id)
+        public async Task<ActionResult<LogItem>> DeleteLogItem(int id)
         {
-            var logRecord = await _context.Log.FindAsync(id);
-            if (logRecord == null)
+            var logItem = await _context.Log.FindAsync(id);
+            if (logItem == null)
             {
                 return NotFound();
             }
 
-            _context.Log.Remove(logRecord);
+            _context.Log.Remove(logItem);
             await _context.SaveChangesAsync();
 
-            return logRecord;
+            return logItem;
         }
 
-        private bool LogRecordExists(int id)
+        private bool LogItemExists(int id)
         {
             return _context.Log.Any(e => e.ID == id);
         }

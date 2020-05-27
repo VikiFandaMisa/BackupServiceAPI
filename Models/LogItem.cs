@@ -8,7 +8,7 @@ namespace BackupServiceAPI.Models {
         info = 2,
         job = 3
     }
-    public class LogRecord {
+    public class LogItem {
         [Key]
         public int ID {get; set;}
         [ForeignKey("JobsID")]

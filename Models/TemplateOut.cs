@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackupServiceAPI.Models {
+    [NotMapped]
     public class TemplateOut : Template {
         public List<PathOut> Sources {get; set;}
         public List<PathOut> Targets {get; set;}

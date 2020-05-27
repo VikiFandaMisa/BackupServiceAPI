@@ -7,7 +7,7 @@ namespace BackupServiceAPI.Models
     {
         public DbBackupServiceContext(DbContextOptions<DbBackupServiceContext> options) : base(options) { }
         public DbSet<Job> Jobs { get; set; }
-        public DbSet<LogRecord> Log { get; set; }
+        public DbSet<LogItem> Log { get; set; }
         public DbSet<Computer> Computers { get; set; }
         public DbSet<Template> Templates { get; set; }
         public DbSet<Path> Paths { get; set; }
@@ -36,7 +36,7 @@ namespace BackupServiceAPI.Models
             
             // Log
             modelBuilder
-                .Entity<LogRecord>()
+                .Entity<LogItem>()
                 .Property(e => e.Type)
                 .HasConversion(new EnumToStringConverter<MessageType>());
         }

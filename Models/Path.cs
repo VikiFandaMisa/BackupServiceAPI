@@ -8,7 +8,7 @@ namespace BackupServiceAPI.Models {
         [ForeignKey("TemplatesID")]
         public int TemplateID {get; set;}
         [MaxLength(256)]
-        public string FTP {get; set;}
+        public string Network {get; set;}
         public bool Source {get; set;}
         [MaxLength(256)]
         public string Directory {get; set;}

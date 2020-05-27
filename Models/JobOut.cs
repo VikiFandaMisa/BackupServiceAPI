@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackupServiceAPI.Models {
+    [NotMapped]
     public class JobOut {
         public int TemplateID {get; set;}
         public string TemplateName {get; set;}
