@@ -4,9 +4,9 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackupServiceAPI.Models {
     public enum MessageType {
-        error = 1,
-        info = 2,
-        job = 3
+        Error = 1,
+        Info = 2,
+        Job = 3
     }
     public class LogItem {
         [Key]
