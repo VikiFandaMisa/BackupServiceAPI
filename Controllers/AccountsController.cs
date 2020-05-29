@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,27 +6,27 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 
-using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
+using BackupServiceAPI.Services;
 
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize(Policy = "UsersOnly")]
-    public class AccountsController : ControllerBase
-    {
+    public class AccountsController : ControllerBase {
         private readonly DbBackupServiceContext _context;
+        private readonly ITokenManager _TokenManager;
+        private readonly IPasswordHelper _PasswordHelper;
 
-        public AccountsController(DbBackupServiceContext context)
-        {
+        public AccountsController(DbBackupServiceContext context, ITokenManager tokenManager, IPasswordHelper passwordHelper) {
             _context = context;
+            _TokenManager = tokenManager;
+            _PasswordHelper = passwordHelper;
         }
 
         // GET: api/Accounts
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts()
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<IEnumerable<Account>>> GetAccounts() {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (!requestor.Admin)
                 return Unauthorized();
@@ -37,14 +36,12 @@ namespace BackupServiceAPI.Controllers
         }
 
         [HttpGet("self")]
-        public async Task<ActionResult<Account>> GetSelf()
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Account>> GetSelf() {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             Account account = await _context.Accounts.FindAsync(requestor.ID);
 
-            if (account == null)
-            {
+            if (account == null) {
                 return NotFound();
             }
 
@@ -53,17 +50,15 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Accounts/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Account>> GetAccount(int id)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Account>> GetAccount(int id) {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (!(requestor.Admin || id == requestor.ID))
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);
 
-            if (account == null)
-            {
+            if (account == null) {
                 return NotFound();
             }
 
@@ -74,32 +69,27 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut]
-        public async Task<IActionResult> PutAccount(Account account)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<IActionResult> PutAccount(Account account) {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (!(requestor.Admin || account.ID == requestor.ID))
                 return Unauthorized();
 
             if (account.Password != "")
-                account.Password = TokenHelper.CreatePasswordHash(account.Password);
+                account.Password = _PasswordHelper.CreatePasswordHash(account.Password);
             else
                 await ReturnPassword(account);
 
             _context.Entry(account).State = EntityState.Modified;
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!AccountExists(account.ID))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!AccountExists(account.ID)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -111,9 +101,8 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<Account>> PostAccount(Account account)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Account>> PostAccount(Account account) {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (!requestor.Admin)
                 return Unauthorized();
@@ -126,16 +115,14 @@ namespace BackupServiceAPI.Controllers
 
         // DELETE: api/Accounts/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<Account>> DeleteAccount(int id)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Account>> DeleteAccount(int id) {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (!requestor.Admin)
                 return Unauthorized();
 
             Account account = await _context.Accounts.FindAsync(id);
-            if (account == null)
-            {
+            if (account == null) {
                 return NotFound();
             }
 
@@ -145,8 +132,7 @@ namespace BackupServiceAPI.Controllers
             return RemovePassword(account);
         }
 
-        private bool AccountExists(int id)
-        {
+        private bool AccountExists(int id) {
             return _context.Accounts.Any(e => e.ID == id);
         }
 

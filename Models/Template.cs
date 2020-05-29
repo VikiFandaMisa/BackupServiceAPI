@@ -7,10 +7,12 @@ namespace BackupServiceAPI.Models {
         differential = 2,
         incremental = 3
     }
+    
     public enum BackupFileType {
         plain = 1,
         zip = 2
     }
+
     public class Template {
         [Key]
         public int ID {get; set;}

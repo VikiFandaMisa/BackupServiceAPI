@@ -2,45 +2,43 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.Extensions.Configuration;
+using NCrontab;
 
 using BackupServiceAPI.Models;
-using BackupServiceAPI.Helpers;
+using BackupServiceAPI.Services;
 
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize]
-    public class JobsController : ControllerBase
-    {
-        private readonly DbBackupServiceContext _context;
+    public class JobsController : ControllerBase {
+        private readonly DbBackupServiceContext _Context;
+        private readonly IConfiguration _Configuration;
+        private readonly ITokenManager _TokenManager;
 
-        public JobsController(DbBackupServiceContext context)
-        {
-            _context = context;
+        public JobsController(DbBackupServiceContext context, IConfiguration configuration, ITokenManager tokenManager) {
+            _Context = context;
+            _Configuration = configuration;
+            _TokenManager = tokenManager;
         }
 
         // GET: api/Jobs
         [HttpGet]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<IEnumerable<Job>>> GetJobs()
-        {
-            return await _context.Jobs.ToListAsync();
+        public async Task<ActionResult<IEnumerable<Job>>> GetJobs() {
+            return await _Context.Jobs.ToListAsync();
         }
 
         // GET: api/Jobs/5
         [HttpGet("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<Job>> GetJob(int id)
-        {
-            var job = await _context.Jobs.FindAsync(id);
+        public async Task<ActionResult<Job>> GetJob(int id) {
+            var job = await _Context.Jobs.FindAsync(id);
 
-            if (job == null)
-            {
+            if (job == null) {
                 return NotFound();
             }
 
@@ -49,11 +47,10 @@ namespace BackupServiceAPI.Controllers
 
         [HttpGet("computer")]
         [Authorize(Policy="ComputersOnly")]
-        public async Task<ActionResult<JobOut[]>> GetComputerJobs()
-        {
-            Computer requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<JobOut[]>> GetComputerJobs() {
+            Computer requestor = await _TokenManager.GetTokenOwner();
 
-            Template[] templates = _context.Templates.FromSqlRaw(@"
+            Template[] templates = _Context.Templates.FromSqlRaw(@"
                 SELECT t.*
                 FROM Templates t
                     INNER JOIN Jobs j ON t.ID = j.TemplateID
@@ -61,20 +58,18 @@ namespace BackupServiceAPI.Controllers
             ).ToArray();
 
             JobOut[] jobsOut = new JobOut[templates.Length];
-            for (int i = 0; i < templates.Length; i++)
-            {
-                var schedule = TemplatesHelper.GetSchedule(templates[i].Period, templates[i].Start, templates[i].End);
+            for (int i = 0; i < templates.Length; i++) {
+                var schedule = GetSchedule(templates[i].Period, templates[i].Start, templates[i].End);
                 JobOut templateReturn = JobOut.FromTemplate(templates[i], 0, schedule); //LOL FIX THIS LATER
                 jobsOut[i] = templateReturn;
 
-                Path[] paths = _context.Paths.FromSqlRaw(@"
+                Path[] paths = _Context.Paths.FromSqlRaw(@"
                     SELECT *
                     FROM Paths p
                     WHERE TemplateID = " + templates[i].ID
                 ).ToArray();
 
-                foreach (Path path in paths)
-                {
+                foreach (Path path in paths) {
                     if (path.Source)
                         jobsOut[i].Sources.Add(path);
                     else 
@@ -90,27 +85,21 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<IActionResult> PutJob(int id, Job job)
-        {
-            if (id != job.ID)
-            {
+        public async Task<IActionResult> PutJob(int id, Job job) {
+            if (id != job.ID) {
                 return BadRequest();
             }
 
-            _context.Entry(job).State = EntityState.Modified;
+            _Context.Entry(job).State = EntityState.Modified;
 
-            try
-            {
-                await _context.SaveChangesAsync();
+            try {
+                await _Context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!JobExists(id))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!JobExists(id)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -123,10 +112,9 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<Job>> PostJob(Job job)
-        {
-            _context.Jobs.Add(job);
-            await _context.SaveChangesAsync();
+        public async Task<ActionResult<Job>> PostJob(Job job) {
+            _Context.Jobs.Add(job);
+            await _Context.SaveChangesAsync();
 
             return CreatedAtAction("GetJob", new { id = job.ID }, job);
         }
@@ -134,23 +122,40 @@ namespace BackupServiceAPI.Controllers
         // DELETE: api/Jobs/5
         [HttpDelete("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<Job>> DeleteJob(int id)
-        {
-            var job = await _context.Jobs.FindAsync(id);
-            if (job == null)
-            {
+        public async Task<ActionResult<Job>> DeleteJob(int id) {
+            var job = await _Context.Jobs.FindAsync(id);
+            if (job == null) {
                 return NotFound();
             }
 
-            _context.Jobs.Remove(job);
-            await _context.SaveChangesAsync();
+            _Context.Jobs.Remove(job);
+            await _Context.SaveChangesAsync();
 
             return job;
         }
 
-        private bool JobExists(int id)
-        {
-            return _context.Jobs.Any(e => e.ID == id);
+        private bool JobExists(int id) {
+            return _Context.Jobs.Any(e => e.ID == id);
+        }
+
+        private List<DateTime> GetSchedule(string cron, DateTime start, DateTime end) {
+            var schedule = new List<DateTime>();
+            var scheduleLength = Convert.ToInt32(_Configuration["Jobs:ScheduleLength"]);
+            var crontab = CrontabSchedule.Parse(cron);
+
+            if (DateTime.Now > start)
+                start = crontab.GetNextOccurrences(start, DateTime.Now).Last();
+
+            for(int i = 0; i < scheduleLength; i++) {
+                var add = crontab.GetNextOccurrence(start);
+                if (add < end)
+                    schedule.Add(add);
+                else 
+                    break;
+                start = add;
+            }
+            
+            return schedule;
         }
     }
 }

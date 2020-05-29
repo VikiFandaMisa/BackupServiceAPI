@@ -6,6 +6,7 @@ namespace BackupServiceAPI.Models {
         public int ID {get; set;}
         public string Network {get; set;}
         public string Directory {get; set;}
+        
         public static PathOut FromPath(Path path) {
             return new PathOut() {
                 ID = path.ID,

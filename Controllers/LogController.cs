@@ -1,43 +1,36 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
+
 using BackupServiceAPI.Models;
 
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize]
-    public class LogController : ControllerBase
-    {
+    public class LogController : ControllerBase {
         private readonly DbBackupServiceContext _context;
 
-        public LogController(DbBackupServiceContext context)
-        {
+        public LogController(DbBackupServiceContext context) {
             _context = context;
         }
 
         // GET: api/Log
         [HttpGet]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<IEnumerable<LogItem>>> GetLog()
-        {
+        public async Task<ActionResult<IEnumerable<LogItem>>> GetLog() {
             return await _context.Log.ToListAsync();
         }
 
         // GET: api/Log/5
         [HttpGet("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogItem>> GetLogItem(int id)
-        {
+        public async Task<ActionResult<LogItem>> GetLogItem(int id) {
             var logItem = await _context.Log.FindAsync(id);
 
-            if (logItem == null)
-            {
+            if (logItem == null) {
                 return NotFound();
             }
 
@@ -49,27 +42,21 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<IActionResult> PutLogItem(int id, LogItem logItem)
-        {
-            if (id != logItem.ID)
-            {
+        public async Task<IActionResult> PutLogItem(int id, LogItem logItem) {
+            if (id != logItem.ID) {
                 return BadRequest();
             }
 
             _context.Entry(logItem).State = EntityState.Modified;
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!LogItemExists(id))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!LogItemExists(id)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -82,8 +69,7 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogItem>> PostLogItem(LogItem logItem)
-        {
+        public async Task<ActionResult<LogItem>> PostLogItem(LogItem logItem) {
             _context.Log.Add(logItem);
             await _context.SaveChangesAsync();
 
@@ -93,11 +79,9 @@ namespace BackupServiceAPI.Controllers
         // DELETE: api/Log/5
         [HttpDelete("{id}")]
         [Authorize(Policy="UsersOnly")]
-        public async Task<ActionResult<LogItem>> DeleteLogItem(int id)
-        {
+        public async Task<ActionResult<LogItem>> DeleteLogItem(int id) {
             var logItem = await _context.Log.FindAsync(id);
-            if (logItem == null)
-            {
+            if (logItem == null) {
                 return NotFound();
             }
 
@@ -107,8 +91,7 @@ namespace BackupServiceAPI.Controllers
             return logItem;
         }
 
-        private bool LogItemExists(int id)
-        {
+        private bool LogItemExists(int id) {
             return _context.Log.Any(e => e.ID == id);
         }
     }

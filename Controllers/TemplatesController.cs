@@ -1,30 +1,24 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using BackupServiceAPI.Models;
 
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize(Policy="UsersOnly")]
-    public class TemplatesController : ControllerBase
-    {
+    public class TemplatesController : ControllerBase {
         private readonly DbBackupServiceContext _context;
 
-        public TemplatesController(DbBackupServiceContext context)
-        {
+        public TemplatesController(DbBackupServiceContext context) {
             _context = context;
         }
 
         // GET: api/Templates
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TemplateOut>>> GetTemplates()
-        {
+        public async Task<ActionResult<IEnumerable<TemplateOut>>> GetTemplates() {
             List<Template> templates = await _context.Templates.ToListAsync();
 
             TemplateOut[] templateOut = new TemplateOut[templates.Count];
@@ -36,12 +30,10 @@ namespace BackupServiceAPI.Controllers
 
         // GET: api/Templates/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<TemplateOut>> GetTemplate(int id)
-        {
+        public async Task<ActionResult<TemplateOut>> GetTemplate(int id) {
             var template = await _context.Templates.FindAsync(id);
 
-            if (template == null)
-            {
+            if (template == null) {
                 return NotFound();
             }
 
@@ -52,10 +44,8 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutTemplate(int id, TemplateOut templateOut)
-        {
-            if (id != templateOut.ID)
-            {
+        public async Task<IActionResult> PutTemplate(int id, TemplateOut templateOut) {
+            if (id != templateOut.ID) {
                 return BadRequest();
             }
 
@@ -87,18 +77,14 @@ namespace BackupServiceAPI.Controllers
                 _context.Paths.Remove(deleted);
             }
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!TemplateExists(id))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!TemplateExists(id)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -110,8 +96,7 @@ namespace BackupServiceAPI.Controllers
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        public async Task<ActionResult<TemplateOut>> PostTemplate(TemplateOut templateOut)
-        {
+        public async Task<ActionResult<TemplateOut>> PostTemplate(TemplateOut templateOut) {
             var unpacked = TemplateOutToTemplateAndPaths(templateOut);
 
             _context.Templates.Add(unpacked.Item1);
@@ -132,11 +117,9 @@ namespace BackupServiceAPI.Controllers
 
         // DELETE: api/Templates/5
         [HttpDelete("{id}")]
-        public async Task<ActionResult<TemplateOut>> DeleteTemplate(int id)
-        {
+        public async Task<ActionResult<TemplateOut>> DeleteTemplate(int id) {
             var template = await _context.Templates.FindAsync(id);
-            if (template == null)
-            {
+            if (template == null) {
                 return NotFound();
             }
 
@@ -152,8 +135,7 @@ namespace BackupServiceAPI.Controllers
             return templateOut;
         }
 
-        private bool TemplateExists(int id)
-        {
+        private bool TemplateExists(int id) {
             return _context.Templates.Any(e => e.ID == id);
         }
 
@@ -169,6 +151,7 @@ namespace BackupServiceAPI.Controllers
 
             return tOut;
         }
+
         private Path[] GetPaths(int templateID) {
             return _context.Paths.FromSqlRaw(@"
                 SELECT *
@@ -176,6 +159,7 @@ namespace BackupServiceAPI.Controllers
                 WHERE TemplateID = " + templateID
             ).ToArray();
         }
+        
         private (Template, List<Path>) TemplateOutToTemplateAndPaths(TemplateOut templateOut) {
             Template template = templateOut.ToTemplate();
             List<Path> paths = new List<Path>();

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.IdentityModel.Tokens.Jwt;
@@ -7,27 +6,31 @@ using System.Security.Claims;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System.Text;
 
-using BackupServiceAPI.Helpers;
 using BackupServiceAPI.Models;
 using BackupServiceAPI.Services;
 
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize]
     public class TokenController : ControllerBase {
-        private readonly DbBackupServiceContext _context;
-        private readonly ITokenManager _tokenManager;
+        private readonly DbBackupServiceContext _Context;
+        private readonly ITokenManager _TokenManager;
+        private readonly IConfiguration _Configuration;
+        private readonly IPasswordHelper _PasswordHelper;
 
-        public TokenController(DbBackupServiceContext context, ITokenManager tokenManager) {
-            _context = context;
-            _tokenManager = tokenManager;
+        public TokenController(DbBackupServiceContext context, ITokenManager tokenManager, IConfiguration configuration, IPasswordHelper passwordHelper) {
+            _Context = context;
+            _TokenManager = tokenManager;
+            _Configuration = configuration;
+            _PasswordHelper = passwordHelper;
         }
 
         [HttpDelete]
         public async Task<IActionResult> InvalidateToken() {
-            await _tokenManager.InvalidateCurrentToken();
+            await _TokenManager.InvalidateCurrentToken();
 
             return Ok();
         }
@@ -63,15 +66,15 @@ namespace BackupServiceAPI.Controllers
         }
 
         private string _BuildToken(Claim[] claims) {
-            SymmetricSecurityKey key = new SymmetricSecurityKey(AppSettings.Key);
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_Configuration["JWT:Key"]));
             SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             JwtSecurityToken token = new JwtSecurityToken(
-                AppSettings.Configuration["Jwt:Issuer"],
-                AppSettings.Configuration["Jwt:Issuer"],
+                _Configuration["Jwt:Issuer"],
+                _Configuration["Jwt:Issuer"],
                 claims,
                 expires: DateTime.Now.AddDays(
-                    Convert.ToInt32(AppSettings.Configuration["Jwt:DaysValid"])
+                    Convert.ToInt32(_Configuration["Jwt:DaysValid"])
                 ),
                 signingCredentials: creds
             );
@@ -86,12 +89,12 @@ namespace BackupServiceAPI.Controllers
         }
 
         private Account _AuthenticateAccount(Login login) {
-            string passwordHash = TokenHelper.CreatePasswordHash(login.Password);
-            return _context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
+            string passwordHash = _PasswordHelper.CreatePasswordHash(login.Password);
+            return _Context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
         }
 
         private Computer _AuthenticateComputer(LoginComputer login) {
-            return _context.Computers.SingleOrDefault(a => a.ID == login.ID);
+            return _Context.Computers.SingleOrDefault(a => a.ID == login.ID);
         }
     }
 }

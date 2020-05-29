@@ -6,40 +6,36 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+
 using BackupServiceAPI.Models;
+using BackupServiceAPI.Services;
 
-using BackupServiceAPI.Helpers;
-
-namespace BackupServiceAPI.Controllers
-{
+namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize]
-    public class ComputersController : ControllerBase
-    {
+    public class ComputersController : ControllerBase {
         private readonly DbBackupServiceContext _context;
+        private readonly ITokenManager _TokenManager;
 
-        public ComputersController(DbBackupServiceContext context)
-        {
+        public ComputersController(DbBackupServiceContext context, ITokenManager tokenManager) {
             _context = context;
+            _TokenManager = tokenManager;
         }
 
         // GET: api/Computers
         [HttpGet]
         [Authorize(Policy = "UsersOnly")]
-        public async Task<ActionResult<IEnumerable<Computer>>> GetComputers()
-        {
+        public async Task<ActionResult<IEnumerable<Computer>>> GetComputers() {
             return await _context.Computers.ToListAsync();
         }
 
         // GET: api/Computers/5 
         [HttpGet("{id}")]
         [Authorize(Policy = "UsersOnly")]
-        public async Task<ActionResult<Computer>> GetComputer(int id)
-        {
+        public async Task<ActionResult<Computer>> GetComputer(int id) {
             var computer = await _context.Computers.FindAsync(id);
 
-            if (computer == null)
-            {
+            if (computer == null) {
                 return NotFound();
             }
 
@@ -48,14 +44,12 @@ namespace BackupServiceAPI.Controllers
 
         [HttpGet("self")]
         [Authorize(Policy = "ComputersOnly")]
-        public async Task<ActionResult<Computer>> GetSelf()
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Computer>> GetSelf() {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             Computer computer = await _context.Computers.FindAsync(requestor.ID);
 
-            if (computer == null)
-            {
+            if (computer == null) {
                 return NotFound();
             }
 
@@ -64,27 +58,22 @@ namespace BackupServiceAPI.Controllers
 
         [HttpPut("self")]
         [Authorize(Policy = "ComputersOnly")]
-        public async Task<ActionResult<Computer>> PutSelf(Computer computer)
-        {
-            var requestor = await TokenHelper.GetTokenOwner(HttpContext.User, _context);
+        public async Task<ActionResult<Computer>> PutSelf(Computer computer) {
+            var requestor = await _TokenManager.GetTokenOwner();
 
             if (requestor.Id != computer.ID)
                 return Unauthorized();
 
             _context.Entry(computer).State = EntityState.Modified;
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ComputerExists(computer.ID))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!ComputerExists(computer.ID)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -94,8 +83,7 @@ namespace BackupServiceAPI.Controllers
 
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<ActionResult<Computer>> RegisterComputer(ComputerRegistration registration)
-        {
+        public async Task<ActionResult<Computer>> RegisterComputer(ComputerRegistration registration) {
             Computer toAdd = new Computer() {
                 Hostname = registration.Hostname,
                 LastSeen = DateTime.Now,
@@ -114,22 +102,17 @@ namespace BackupServiceAPI.Controllers
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPut]
         [Authorize(Policy = "UsersOnly")]
-        public async Task<IActionResult> PutComputer(Computer computer)
-        {
+        public async Task<IActionResult> PutComputer(Computer computer) {
             _context.Entry(computer).State = EntityState.Modified;
 
-            try
-            {
+            try {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ComputerExists(computer.ID))
-                {
+            catch (DbUpdateConcurrencyException) {
+                if (!ComputerExists(computer.ID)) {
                     return NotFound();
                 }
-                else
-                {
+                else {
                     throw;
                 }
             }
@@ -140,11 +123,9 @@ namespace BackupServiceAPI.Controllers
         // DELETE: api/Computers/5
         [HttpDelete("{id}")]
         [Authorize(Policy = "UsersOnly")]
-        public async Task<ActionResult<Computer>> DeleteComputer(int id)
-        {
+        public async Task<ActionResult<Computer>> DeleteComputer(int id) {
             var computer = await _context.Computers.FindAsync(id);
-            if (computer == null)
-            {
+            if (computer == null) {
                 return NotFound();
             }
 
@@ -154,8 +135,7 @@ namespace BackupServiceAPI.Controllers
             return computer;
         }
 
-        private bool ComputerExists(int id)
-        {
+        private bool ComputerExists(int id) {
             return _context.Computers.Any(e => e.ID == id);
         }
     }

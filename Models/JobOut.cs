@@ -14,6 +14,7 @@ namespace BackupServiceAPI.Models {
         public List<DateTime> Schedule {get; set;}
         public List<Path> Sources {get; set;}
         public List<Path> Targets {get; set;}
+        
         public static JobOut FromTemplate(Template template, int ID, List<DateTime> schedule) {
             return new JobOut() {
                 TemplateID = template.ID,

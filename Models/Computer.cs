@@ -7,6 +7,7 @@ namespace BackupServiceAPI.Models {
         approved = 2,
         denied = 3
     }
+    
     public class Computer {
         [Key]
         public int ID { get; set;}
