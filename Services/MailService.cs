@@ -7,6 +7,7 @@ using BackupServiceAPI.Models;
 using System.Net;
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackupServiceAPI.Services
 {
@@ -65,11 +66,68 @@ namespace BackupServiceAPI.Services
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(email),
-                Subject = "subject",
-                Body = "<h1>Hello</h1>",
+                Subject = "Report for today: " + DateTime.Now,
+                Body = GetHtmlBody(),
                 IsBodyHtml = true,
             };
             return mailMessage;
         }
+
+         public string GetHtmlBody ()
+        {              
+            DateTime now = DateTime.Now;  
+
+            string Body ="";
+              
+            Body += "<h1>Good day sir</h1> <h2> Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
+           
+            foreach(Computer p in GetComputers())            {
+                
+                Body += p.Hostname +"<br>";
+            }
+
+            Body +=" <br><h3><Dead_Clients:</h3><br>";
+
+            foreach (LogItem p in GetLogs())
+            {
+                Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
+            }
+
+            Body +=" <br><h3>NewClients:</h3><br>";
+
+            foreach (Computer p in GetDeadComputers())
+            {
+                Body += "Klient " + p.Hostname + "is Dead <br>";
+            }
+
+            return Body;
+
+            
+        }
+        private Computer[] GetComputers() {
+            return _Context.Computers.FromSqlRaw(@"
+                SELECT *
+                FROM Computers "
+            ).ToArray();
+        }
+
+        private LogItem[] GetLogs() {
+            return _Context.Log.FromSqlRaw(@"
+                SELECT *
+                FROM Log "
+            ).ToArray();
+        }
+
+        private Computer[] GetDeadComputers() {
+            return _Context.Computers.FromSqlRaw(@"
+                SELECT *
+                FROM Computers c                 
+                where DATEDIFF(NOW(),LastSeen) > 15"
+            ).ToArray();
+        }
+
+
+
+
     }
 }

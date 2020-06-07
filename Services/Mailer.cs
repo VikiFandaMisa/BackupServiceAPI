@@ -10,8 +10,7 @@ using Microsoft.EntityFrameworkCore;
 namespace BackupServiceAPI.Services
 {
     public class Mailer
-    {
-        private string B = "";
+    {        
         SmtpClient smtpClient = new SmtpClient();
         private DbBackupServiceContext _Context { get; set; }
         private IServiceScope _Scope { get; set; }
@@ -22,11 +21,12 @@ namespace BackupServiceAPI.Services
         }
         public MailMessage WriteMail(string email)
         {
+            
             var mailMessage = new MailMessage
             {
                 From = new MailAddress(email),
-                Subject = "subject",
-                Body = B,
+                Subject = "subject why it aint changing",
+                Body = GetHtmlBody(),
                 IsBodyHtml = true,
             };
             return mailMessage;
@@ -50,7 +50,7 @@ namespace BackupServiceAPI.Services
             smtpClient.Credentials = new NetworkCredential(email, password);
             smtpClient.EnableSsl = enableSSL;
         }
-        public void HtmlBody ()
+        public string GetHtmlBody ()
         {              
             DateTime now = DateTime.Now;  
 
@@ -77,7 +77,7 @@ namespace BackupServiceAPI.Services
                 Body += "Klient " + p.Hostname + "is Dead <br>";
             }
 
-            B = Body; 
+            return Body;
 
             
         }
