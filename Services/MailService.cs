@@ -76,7 +76,7 @@ namespace BackupServiceAPI.Services
                 Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
             }
 
-            Body +="<br><h3><Dead_Clients:</h3><br>";
+            Body +=" <br><h3>DeadClients:</h3><br>";
 
             foreach (Computer p in GetDeadComputers())
             {
