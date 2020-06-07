@@ -81,24 +81,24 @@ namespace BackupServiceAPI.Services
               
             Body += "<h1>Good day sir</h1> <h2> Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
            
-            foreach(Computer p in GetComputers())            {
-                
-                Body += p.Hostname +"<br>";
-            }
-
-            Body +=" <br><h3><Dead_Clients:</h3><br>";
-
             foreach (LogItem p in GetLogs())
             {
                 Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
             }
 
-            Body +=" <br><h3>NewClients:</h3><br>";
+            Body +=" <br><h3><Dead_Clients:</h3><br>";
 
             foreach (Computer p in GetDeadComputers())
             {
                 Body += "Klient " + p.Hostname + "is Dead <br>";
             }
+
+            Body +=" <br><h3>NewClients:</h3><br>";
+
+            foreach(Computer p in GetComputers())            {
+                
+                Body += p.Hostname +"<br>";
+            }            
 
             return Body;
 
