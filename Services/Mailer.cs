@@ -1,23 +1,10 @@
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using System.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net.Mail;
 using BackupServiceAPI.Models;
 using System.Net;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Primitives;
-using Microsoft.Extensions.Configuration;
-using System.Security.Claims;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackupServiceAPI.Services
