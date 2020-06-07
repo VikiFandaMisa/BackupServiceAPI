@@ -13,10 +13,18 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+
 namespace BackupServiceAPI.Services
 {
     public class Mailer
     {
+        private string B = "";
         SmtpClient smtpClient = new SmtpClient();
         private DbBackupServiceContext _Context { get; set; }
         private IServiceScope _Scope { get; set; }
@@ -31,7 +39,7 @@ namespace BackupServiceAPI.Services
             {
                 From = new MailAddress(email),
                 Subject = "subject",
-                Body = "<h1>Hello</h1>",
+                Body = B,
                 IsBodyHtml = true,
             };
             return mailMessage;
@@ -55,5 +63,58 @@ namespace BackupServiceAPI.Services
             smtpClient.Credentials = new NetworkCredential(email, password);
             smtpClient.EnableSsl = enableSSL;
         }
+        public void HtmlBody ()
+        {              
+            DateTime now = DateTime.Now;  
+
+            string Body ="";
+              
+            Body += "<h1>Good day sir</h1> <h2> Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
+           
+            foreach(Computer p in GetComputers())            {
+                
+                Body += p.Hostname +"<br>";
+            }
+
+            Body +=" <br><h3><Dead_Clients:</h3><br>";
+
+            foreach (LogItem p in GetLogs())
+            {
+                Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
+            }
+
+            Body +=" <br><h3>NewClients:</h3><br>";
+
+            foreach (Computer p in GetDeadComputers())
+            {
+                Body += "Klient " + p.Hostname + "is Dead <br>";
+            }
+
+            B = Body; 
+
+            
+        }
+        private Computer[] GetComputers() {
+            return _Context.Computers.FromSqlRaw(@"
+                SELECT *
+                FROM Computers "
+            ).ToArray();
+        }
+
+        private LogItem[] GetLogs() {
+            return _Context.Log.FromSqlRaw(@"
+                SELECT *
+                FROM Log "
+            ).ToArray();
+        }
+
+        private Computer[] GetDeadComputers() {
+            return _Context.Computers.FromSqlRaw(@"
+                SELECT *
+                FROM Computers c                 
+                where DATEDIFF(NOW(),LastSeen) > 15"
+            ).ToArray();
+        }
     }
+    
 }
