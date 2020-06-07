@@ -102,7 +102,10 @@ namespace BackupServiceAPI.Controllers {
         [HttpPut]
         [Authorize(Policy = "UsersOnly")]
         public async Task<IActionResult> PutComputer(Computer computer) {
-            _context.Entry(computer).State = EntityState.Modified;
+            Computer inDB = await _context.Computers.FindAsync(computer.ID);
+            inDB.Status = computer.Status;
+            
+            _context.Entry(inDB).State = EntityState.Modified;
 
             try {
                 await _context.SaveChangesAsync();

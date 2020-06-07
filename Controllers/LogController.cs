@@ -37,38 +37,11 @@ namespace BackupServiceAPI.Controllers {
             return logItem;
         }
 
-        // PUT: api/Log/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to, for
-        // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        [Authorize(Policy="UsersOnly")]
-        public async Task<IActionResult> PutLogItem(int id, LogItem logItem) {
-            if (id != logItem.ID) {
-                return BadRequest();
-            }
-
-            _context.Entry(logItem).State = EntityState.Modified;
-
-            try {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException) {
-                if (!LogItemExists(id)) {
-                    return NotFound();
-                }
-                else {
-                    throw;
-                }
-            }
-
-            return NoContent();
-        }
-
         // POST: api/Log
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
         [HttpPost]
-        [Authorize(Policy="UsersOnly")]
+        [Authorize(Policy="ComputersOnly")]
         public async Task<ActionResult<LogItem>> PostLogItem(LogItem logItem) {
             _context.Log.Add(logItem);
             await _context.SaveChangesAsync();
