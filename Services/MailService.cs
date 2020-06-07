@@ -18,6 +18,7 @@ namespace BackupServiceAPI.Services
         private readonly IServiceScopeFactory scopeFactory;
 
         private Timer _timer;
+        public string Email { get; set; }
         public MailService(IServiceScopeFactory scopeFactory)
         {
             this.scopeFactory = scopeFactory;
@@ -32,8 +33,7 @@ namespace BackupServiceAPI.Services
             using (var scope = scopeFactory.CreateScope())
             {
                 _Context = scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>();
-                //this.SendMail(this.WriteMail("mymailservice001@gmail.com"), "mymailservice001@gmail.com");
-                MailMessage toSend = WriteMail("mymailservice001@gmail.com");
+                MailMessage toSend = WriteMail();
                 List<string> accounts = new List<string>();
                 foreach (var Account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList())
                 {
@@ -47,25 +47,15 @@ namespace BackupServiceAPI.Services
         {
             smtpClient.Host = host;
             smtpClient.Port = port;
+            Email = email;
             smtpClient.Credentials = new NetworkCredential(email, password);
             smtpClient.EnableSsl = enableSSL;
         }
-        public void SendMail(MailMessage mail, string originator)
-        {
-            MailMessage toSend = WriteMail(originator);
-            List<string> accounts = new List<string>();
-            foreach (var Account in _Context.Accounts.ToList())
-            {
-                if (Account.Admin)
-                    toSend.To.Add(Account.Email);
-            }
-            smtpClient.Send(toSend);
-        }
-        public MailMessage WriteMail(string email)
+        public MailMessage WriteMail()
         {
             var mailMessage = new MailMessage
             {
-                From = new MailAddress(email),
+                From = new MailAddress(Email),
                 Subject = "Report for today: " + DateTime.Now,
                 Body = GetHtmlBody(),
                 IsBodyHtml = true,
@@ -86,7 +76,7 @@ namespace BackupServiceAPI.Services
                 Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
             }
 
-            Body +=" <br><h3><Dead_Clients:</h3><br>";
+            Body +="<br><h3><Dead_Clients:</h3><br>";
 
             foreach (Computer p in GetDeadComputers())
             {

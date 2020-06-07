@@ -26,7 +26,7 @@ namespace BackupServiceAPI.Services
             {
                 From = new MailAddress(email),
                 Subject = "subject why it aint changing",
-                Body = GetHtmlBody(),
+                Body = "WHY AM I HERE",
                 IsBodyHtml = true,
             };
             return mailMessage;
@@ -50,58 +50,7 @@ namespace BackupServiceAPI.Services
             smtpClient.Credentials = new NetworkCredential(email, password);
             smtpClient.EnableSsl = enableSSL;
         }
-        public string GetHtmlBody ()
-        {              
-            DateTime now = DateTime.Now;  
-
-            string Body ="";
-              
-            Body += "<h1>Good day sir</h1> <h2> Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
-           
-            foreach (LogItem p in GetLogs())
-            {
-                Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
-            }
-
-            Body +=" <br><h3><Dead_Clients:</h3><br>";
-
-            foreach (Computer p in GetDeadComputers())
-            {
-                Body += "Klient " + p.Hostname + "is Dead <br>";
-            }
-
-            Body +=" <br><h3>NewClients:</h3><br>";
-
-            foreach(Computer p in GetComputers())            {
-                
-                Body += p.Hostname +"<br>";
-            }            
-
-            return Body;
-
-            
-        }
-        private Computer[] GetComputers() {
-            return _Context.Computers.FromSqlRaw(@"
-                SELECT *
-                FROM Computers "
-            ).ToArray();
-        }
-
-        private LogItem[] GetLogs() {
-            return _Context.Log.FromSqlRaw(@"
-                SELECT *
-                FROM Log "
-            ).ToArray();
-        }
-
-        private Computer[] GetDeadComputers() {
-            return _Context.Computers.FromSqlRaw(@"
-                SELECT *
-                FROM Computers c                 
-                where DATEDIFF(NOW(),LastSeen) > 15"
-            ).ToArray();
-        }
+       
     }
     
 }
