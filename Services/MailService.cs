@@ -69,11 +69,11 @@ namespace BackupServiceAPI.Services
 
             string Body ="";
               
-            Body += "<h1>Good day sir</h1> <h2> Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
+            Body += "<h1>Good day sir</h1> <h2  > Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
            
             foreach (LogItem p in GetLogs())
             {
-                Body += "Job " + p.JobID + " message: " + p.Message + "<br>";
+                Body += @"Client: "  + GetHostname(Convert.ToInt32(p.JobID)) + "&#160&#160&#160 " +  "   Template: "+ GetTemplateName(Convert.ToInt32(p.JobID)) +" &#160 &#160 &#160  Log message: " + p.Message + " &#160 &#160 &#160  Date of log: " + p.Date.Date  + "<br><br>";                
             }
 
             Body +=" <br><h3>DeadClients:</h3><br>";
@@ -87,7 +87,7 @@ namespace BackupServiceAPI.Services
 
             foreach(Computer p in GetComputers())            {
                 
-                Body += p.Hostname +"<br>";
+                Body += "Client: " +  p.Hostname +"<br>";
             }            
 
             return Body;
@@ -115,6 +115,47 @@ namespace BackupServiceAPI.Services
                 where DATEDIFF(NOW(),LastSeen) > 15"
             ).ToArray();
         }
+
+
+
+
+
+
+
+        private string GetTemplateName(int JobID) {            
+            
+            var a = _Context.Jobs.FromSqlRaw(@"
+                SELECT *
+                FROM Jobs p
+                WHERE ID = " + JobID
+            ).ToArray();
+
+            var b =_Context.Templates.FromSqlRaw(@"
+            SELECT *
+            FROM Templates p
+            WHERE ID = " + a[0].TemplateID
+            ).ToArray(); 
+
+            return b[0].Name;
+        }
+
+        private string GetHostname(int JobID) {            
+            var a = _Context.Jobs.FromSqlRaw(@"
+                SELECT *
+                FROM Jobs p
+                WHERE ID = " + JobID
+            ).ToArray();
+
+            var b =_Context.Computers.FromSqlRaw(@"
+            SELECT *
+            FROM Computers p
+            WHERE ID = " + a[0].ComputerID
+            ).ToArray();  
+
+            return b[0].Hostname; 
+        }
+
+        
 
 
 
