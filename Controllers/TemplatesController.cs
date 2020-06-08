@@ -128,8 +128,25 @@ namespace BackupServiceAPI.Controllers {
             foreach(Path p in GetPaths(template.ID))
                 _context.Paths.Remove(p);
 
-            _context.Templates.Remove(template);
+            var jobs = _context.Jobs.FromSqlRaw(@"
+                SELECT *
+                FROM Jobs j
+                WHERE TemplateID = " + id
+            );
 
+            await jobs.ForEachAsync(job => {
+                var logs = _context.Log.FromSqlRaw(@"
+                    SELECT *
+                    FROM Logs l
+                    WHERE JobID = " + job.ID
+                );
+                _context.Log.RemoveRange(logs);
+            });
+
+            _context.Jobs.RemoveRange(jobs);
+            await _context.SaveChangesAsync();
+
+            _context.Templates.Remove(template);
             await _context.SaveChangesAsync();
 
             return templateOut;
