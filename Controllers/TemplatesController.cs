@@ -43,12 +43,8 @@ namespace BackupServiceAPI.Controllers {
         // PUT: api/Templates/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutTemplate(int id, TemplateOut templateOut) {
-            if (id != templateOut.ID) {
-                return BadRequest();
-            }
-
+        [HttpPut]
+        public async Task<IActionResult> PutTemplate(TemplateOut templateOut) {
             var unpacked = TemplateOutToTemplateAndPaths(templateOut);
 
             _context.Entry(unpacked.Item1).State = EntityState.Modified;
@@ -81,7 +77,7 @@ namespace BackupServiceAPI.Controllers {
                 await _context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
-                if (!TemplateExists(id)) {
+                if (!TemplateExists(unpacked.Item1.ID)) {
                     return NotFound();
                 }
                 else {

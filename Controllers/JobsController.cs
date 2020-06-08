@@ -83,20 +83,16 @@ namespace BackupServiceAPI.Controllers {
         // PUT: api/Jobs/5
         // To protect from overposting attacks, enable the specific properties you want to bind to, for
         // more details, see https://go.microsoft.com/fwlink/?linkid=2123754.
-        [HttpPut("{id}")]
+        [HttpPut]
         [Authorize(Policy="UsersOnly")]
-        public async Task<IActionResult> PutJob(int id, Job job) {
-            if (id != job.ID) {
-                return BadRequest();
-            }
-
+        public async Task<IActionResult> PutJob(Job job) {
             _Context.Entry(job).State = EntityState.Modified;
 
             try {
                 await _Context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
-                if (!JobExists(id)) {
+                if (!JobExists(job.ID)) {
                     return NotFound();
                 }
                 else {
