@@ -6,7 +6,7 @@ namespace BackupServiceAPI.Models {
     public class Login
     {
         [Required, MaxLength(256)]
-        public string Username { get; set; }
+        public string Email { get; set; }
         [Required, MaxLength(256)]
         public string Password { get; set; }
     }

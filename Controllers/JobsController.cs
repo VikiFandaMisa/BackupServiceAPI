@@ -128,6 +128,15 @@ namespace BackupServiceAPI.Controllers {
                 return NotFound();
             }
 
+            var logs = _Context.Log.FromSqlRaw(@"
+                SELECT *
+                FROM Log l
+                WHERE JobID = " + id
+            );
+
+            _Context.Log.RemoveRange(logs);
+            await _Context.SaveChangesAsync();
+
             _Context.Jobs.Remove(job);
             await _Context.SaveChangesAsync();
 

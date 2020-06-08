@@ -90,7 +90,7 @@ namespace BackupServiceAPI.Controllers {
 
         private Account _AuthenticateAccount(Login login) {
             string passwordHash = _PasswordHelper.CreatePasswordHash(login.Password);
-            return _Context.Accounts.SingleOrDefault(a => a.Username == login.Username && a.Password == passwordHash);
+            return _Context.Accounts.SingleOrDefault(a => a.Email == login.Email && a.Password == passwordHash);
         }
 
         private Computer _AuthenticateComputer(LoginComputer login) {
