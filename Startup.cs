@@ -28,6 +28,7 @@ namespace BackupServiceAPI {
             services.AddTransient<ITokenManager, Services.TokenManager>();
             services.AddSingleton<IPasswordHelper, Services.PasswordHelper>();
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            services.AddSingleton<IHostedService, MailService>();
 
             services.AddDbContextPool<DbBackupServiceContext>(options =>
                 options.UseMySql(
