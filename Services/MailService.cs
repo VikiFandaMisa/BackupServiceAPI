@@ -8,29 +8,37 @@ using System.Net;
 using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace BackupServiceAPI.Services
 {
     public class MailService : BackgroundService
     {
-        SmtpClient smtpClient = new SmtpClient();
+        private SmtpClient _SmtpClient = new SmtpClient();
         private DbBackupServiceContext _Context { get; set; }
-        private readonly IServiceScopeFactory scopeFactory;
-
-        private Timer _timer;
+        private readonly IServiceScopeFactory ScopeFactory;
+        private readonly IConfiguration _Configuration;
+        private Timer _Timer;
         public string Email { get; set; }
-        public MailService(IServiceScopeFactory scopeFactory)
+
+        public MailService(IServiceScopeFactory scopeFactory, IConfiguration configuration)
         {
-            this.scopeFactory = scopeFactory;
-            this.Setup("smtp.gmail.com", 587, "mymailservice001@gmail.com", "Aa123456+", true);
+            this.ScopeFactory = scopeFactory;
+            this._Configuration = configuration;
+
+            _SmtpClient.Host = _Configuration["SMTP:Host"];
+            _SmtpClient.Port = Convert.ToInt32(_Configuration["SMTP:Port"]);
+            Email = _Configuration["SMTP:Email"];
+            _SmtpClient.Credentials = new NetworkCredential(_Configuration["SMTP:Email"], _Configuration["SMTP:Password"]);
+            _SmtpClient.EnableSsl = true;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
         {
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(432000));
+            _Timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(432000));
         }
         private void DoWork(object state)
         {
-            using (var scope = scopeFactory.CreateScope())
+            using (var scope = ScopeFactory.CreateScope())
             {
                 _Context = scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>();
                 MailMessage toSend = WriteMail();
@@ -40,16 +48,8 @@ namespace BackupServiceAPI.Services
                     if (Account.Admin)
                         toSend.To.Add(Account.Email);
                 }
-                smtpClient.Send(toSend);
+                _SmtpClient.Send(toSend);
             }
-        }
-        public void Setup(string host, int port, string email, string password, bool enableSSL)
-        {
-            smtpClient.Host = host;
-            smtpClient.Port = port;
-            Email = email;
-            smtpClient.Credentials = new NetworkCredential(email, password);
-            smtpClient.EnableSsl = enableSSL;
         }
         public MailMessage WriteMail()
         {
@@ -95,17 +95,11 @@ namespace BackupServiceAPI.Services
             
         }
         private Computer[] GetComputers() {
-            return _Context.Computers.FromSqlRaw(@"
-                SELECT *
-                FROM Computers "
-            ).ToArray();
+            return _Context.Computers.ToArray();
         }
 
         private LogItem[] GetLogs() {
-            return _Context.Log.FromSqlRaw(@"
-                SELECT *
-                FROM Log "
-            ).ToArray();
+            return _Context.Log.ToArray();
         }
 
         private Computer[] GetDeadComputers() {
@@ -154,11 +148,5 @@ namespace BackupServiceAPI.Services
 
             return b[0].Hostname; 
         }
-
-        
-
-
-
-
     }
 }

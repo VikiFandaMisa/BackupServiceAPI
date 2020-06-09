@@ -1,8 +1,12 @@
 param (
-    [Parameter(Mandatory=$true)][string]$server,
-    [Parameter(Mandatory=$true)][string]$database,
-    [Parameter(Mandatory=$true)][string]$username,
-    [Parameter(Mandatory=$true)][string]$password,
+    [Parameter(Mandatory=$true)][string]$dbServer,
+    [Parameter(Mandatory=$true)][string]$dbDatabase,
+    [Parameter(Mandatory=$true)][string]$dbUsername,
+    [Parameter(Mandatory=$true)][string]$dbPassword,
+    [Parameter(Mandatory=$true)][string]$smtpHost,
+    [Parameter(Mandatory=$true)][string]$smtpPort,
+    [Parameter(Mandatory=$true)][string]$smtpEmail,
+    [Parameter(Mandatory=$true)][string]$smtpPassword,
     [int]$keyLength = 256
  )
 
@@ -14,13 +18,19 @@ for ( $i = 1; $i -le $keyLength; $i++) {
 
 $json = '{
     "DB": {
-        "Server": "' + $server + '",
-        "Database": "' + $database + '",
-        "Username": "' + $username + '",
-        "Password": "' + $password + '",
+        "Server": "' + $dbServer + '",
+        "Database": "' + $dbDatabase + '",
+        "Username": "' + $dbUsername + '",
+        "Password": "' + $dbPassword + '",
     },
     "JWT": {
         "Key": "' + $key + '",
+    },
+    "SMTP": {
+        "Host": "' + $smtpHost + '",
+        "Port": "' + $smtpPort + '",
+        "Email": "' + $smtpEmail + '",
+        "Password": "' + $smtpPassword + '",
     }
 }'
 
