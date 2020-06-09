@@ -12,12 +12,12 @@ namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize(Policy = "UsersOnly")]
     public class AccountsController : ControllerBase {
-        private readonly DbBackupServiceContext _context;
+        private readonly DbBackupServiceContext _Context;
         private readonly ITokenManager _TokenManager;
         private readonly IPasswordHelper _PasswordHelper;
 
         public AccountsController(DbBackupServiceContext context, ITokenManager tokenManager, IPasswordHelper passwordHelper) {
-            _context = context;
+            _Context = context;
             _TokenManager = tokenManager;
             _PasswordHelper = passwordHelper;
         }
@@ -29,8 +29,8 @@ namespace BackupServiceAPI.Controllers {
 
             if (!requestor.Admin)
                 return Unauthorized();
-            
-            return RemovePasswords(await _context.Accounts.ToListAsync());
+
+            return RemovePasswords(await _Context.Accounts.ToListAsync());
 
         }
 
@@ -38,7 +38,7 @@ namespace BackupServiceAPI.Controllers {
         public async Task<ActionResult<Account>> GetSelf() {
             var requestor = await _TokenManager.GetTokenOwner();
 
-            Account account = await _context.Accounts.FindAsync(requestor.ID);
+            Account account = await _Context.Accounts.FindAsync(requestor.ID);
 
             if (account == null) {
                 return NotFound();
@@ -55,7 +55,7 @@ namespace BackupServiceAPI.Controllers {
             if (!(requestor.Admin || id == requestor.ID))
                 return Unauthorized();
 
-            Account account = await _context.Accounts.FindAsync(id);
+            Account account = await _Context.Accounts.FindAsync(id);
 
             if (account == null) {
                 return NotFound();
@@ -79,10 +79,10 @@ namespace BackupServiceAPI.Controllers {
             else
                 await ReturnPassword(account);
 
-            _context.Entry(account).State = EntityState.Modified;
+            _Context.Entry(account).State = EntityState.Modified;
 
             try {
-                await _context.SaveChangesAsync();
+                await _Context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
                 if (!AccountExists(account.ID)) {
@@ -106,8 +106,8 @@ namespace BackupServiceAPI.Controllers {
             if (!requestor.Admin)
                 return Unauthorized();
 
-            _context.Accounts.Add(account);
-            await _context.SaveChangesAsync();
+            _Context.Accounts.Add(account);
+            await _Context.SaveChangesAsync();
 
             return CreatedAtAction("GetAccount", new { id = account.ID }, RemovePassword(account));
         }
@@ -120,19 +120,19 @@ namespace BackupServiceAPI.Controllers {
             if (!requestor.Admin)
                 return Unauthorized();
 
-            Account account = await _context.Accounts.FindAsync(id);
+            Account account = await _Context.Accounts.FindAsync(id);
             if (account == null) {
                 return NotFound();
             }
 
-            _context.Accounts.Remove(account);
-            await _context.SaveChangesAsync();
+            _Context.Accounts.Remove(account);
+            await _Context.SaveChangesAsync();
 
             return RemovePassword(account);
         }
 
         private bool AccountExists(int id) {
-            return _context.Accounts.Any(e => e.ID == id);
+            return _Context.Accounts.Any(e => e.ID == id);
         }
 
         private static Account RemovePassword(Account account) {
@@ -140,14 +140,14 @@ namespace BackupServiceAPI.Controllers {
             return account;
         }
         private static List<Account> RemovePasswords(List<Account> accounts) {
-            for(int i = 0; i < accounts.Count; i++)
+            for (int i = 0; i < accounts.Count; i++)
                 accounts[i] = RemovePassword(accounts[i]);
-            
+
             return accounts;
         }
         private async Task<Account> ReturnPassword(Account account) {
             account.Password = (
-                await _context.Accounts.FindAsync(account.ID)
+                await _Context.Accounts.FindAsync(account.ID)
             ).Password;
             return account;
         }

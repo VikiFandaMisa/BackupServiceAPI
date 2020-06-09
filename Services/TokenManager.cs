@@ -16,7 +16,7 @@ namespace BackupServiceAPI.Services {
         Task InvalidateToken(string token);
         Task<dynamic> GetTokenOwner();
     }
-    
+
     public class TokenManager : ITokenManager {
         private readonly IHttpContextAccessor _HttpContextAccessor;
         private readonly DbBackupServiceContext _Context;
@@ -48,7 +48,7 @@ namespace BackupServiceAPI.Services {
             });
             await _Context.SaveChangesAsync();
         }
-            
+
         private string GetCurrentToken() {
             var authorizationHeader = _HttpContextAccessor.HttpContext.Request.Headers["authorization"];
 
@@ -62,8 +62,8 @@ namespace BackupServiceAPI.Services {
             var user = _HttpContextAccessor.HttpContext.User;
             if (user.HasClaim(c => c.Type == ClaimTypes.NameIdentifier)) {
                 string[] identifier = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':');
-                string type = identifier[0];
-                int id = Convert.ToInt32(identifier[1]);
+                var type = identifier[0];
+                var id = Convert.ToInt32(identifier[1]);
 
                 if (type == "user") {
                     return await _Context.Accounts.FindAsync(id);

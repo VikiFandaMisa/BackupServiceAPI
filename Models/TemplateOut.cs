@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace BackupServiceAPI.Models {
     [NotMapped]
     public class TemplateOut : Template {
-        public List<PathOut> Sources {get; set;}
-        public List<PathOut> Targets {get; set;}
+        public List<PathOut> Sources { get; set; }
+        public List<PathOut> Targets { get; set; }
 
         public static TemplateOut FromTemplate(Template template) {
             return new TemplateOut() {
@@ -22,18 +22,18 @@ namespace BackupServiceAPI.Models {
                 Targets = new List<PathOut>(),
             };
         }
-        
+
         public Template ToTemplate() {
             return new Template() {
-                ID = this.ID,
-                Name = this.Name,
-                Period = this.Period,
-                Type = this.Type,
-                TargetFileType = this.TargetFileType,
-                Start = this.Start,
-                End = this.End,
-                Paused = this.Paused,
-                Retention = this.Retention
+                ID = ID,
+                Name = Name,
+                Period = Period,
+                Type = Type,
+                TargetFileType = TargetFileType,
+                Start = Start,
+                End = End,
+                Paused = Paused,
+                Retention = Retention
             };
         }
     }

@@ -13,11 +13,11 @@ namespace BackupServiceAPI.Controllers {
     [Route("api/[controller]")]
     [ApiController, Authorize]
     public class ComputersController : ControllerBase {
-        private readonly DbBackupServiceContext _context;
+        private readonly DbBackupServiceContext _Context;
         private readonly ITokenManager _TokenManager;
 
         public ComputersController(DbBackupServiceContext context, ITokenManager tokenManager) {
-            _context = context;
+            _Context = context;
             _TokenManager = tokenManager;
         }
 
@@ -25,14 +25,14 @@ namespace BackupServiceAPI.Controllers {
         [HttpGet]
         [Authorize(Policy = "UsersOnly")]
         public async Task<ActionResult<IEnumerable<Computer>>> GetComputers() {
-            return await _context.Computers.ToListAsync();
+            return await _Context.Computers.ToListAsync();
         }
 
         // GET: api/Computers/5 
         [HttpGet("{id}")]
         [Authorize(Policy = "UsersOnly")]
         public async Task<ActionResult<Computer>> GetComputer(int id) {
-            var computer = await _context.Computers.FindAsync(id);
+            var computer = await _Context.Computers.FindAsync(id);
 
             if (computer == null) {
                 return NotFound();
@@ -46,7 +46,7 @@ namespace BackupServiceAPI.Controllers {
         public async Task<ActionResult<Computer>> GetSelf() {
             var requestor = await _TokenManager.GetTokenOwner();
 
-            Computer computer = await _context.Computers.FindAsync(requestor.ID);
+            var computer = await _Context.Computers.FindAsync(requestor.ID);
 
             if (computer == null) {
                 return NotFound();
@@ -63,10 +63,10 @@ namespace BackupServiceAPI.Controllers {
             if (requestor.Id != computer.ID)
                 return Unauthorized();
 
-            _context.Entry(computer).State = EntityState.Modified;
+            _Context.Entry(computer).State = EntityState.Modified;
 
             try {
-                await _context.SaveChangesAsync();
+                await _Context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
                 if (!ComputerExists(computer.ID)) {
@@ -83,15 +83,15 @@ namespace BackupServiceAPI.Controllers {
         [HttpPost("register")]
         [AllowAnonymous]
         public async Task<ActionResult<Computer>> RegisterComputer(ComputerRegistration registration) {
-            Computer toAdd = new Computer() {
+            var toAdd = new Computer() {
                 Hostname = registration.Hostname,
                 LastSeen = DateTime.Now,
                 IP = registration.IP,
                 MAC = registration.MAC,
                 Status = ComputerStatus.pending
             };
-            _context.Computers.Add(toAdd);
-            await _context.SaveChangesAsync();
+            _Context.Computers.Add(toAdd);
+            await _Context.SaveChangesAsync();
 
             return CreatedAtAction("GetComputer", new { id = toAdd.ID }, toAdd);
         }
@@ -102,13 +102,13 @@ namespace BackupServiceAPI.Controllers {
         [HttpPut]
         [Authorize(Policy = "UsersOnly")]
         public async Task<IActionResult> PutComputer(Computer computer) {
-            Computer inDB = await _context.Computers.FindAsync(computer.ID);
+            var inDB = await _Context.Computers.FindAsync(computer.ID);
             inDB.Status = computer.Status;
-            
-            _context.Entry(inDB).State = EntityState.Modified;
+
+            _Context.Entry(inDB).State = EntityState.Modified;
 
             try {
-                await _context.SaveChangesAsync();
+                await _Context.SaveChangesAsync();
             }
             catch (DbUpdateConcurrencyException) {
                 if (!ComputerExists(computer.ID)) {
@@ -126,19 +126,19 @@ namespace BackupServiceAPI.Controllers {
         [HttpDelete("{id}")]
         [Authorize(Policy = "UsersOnly")]
         public async Task<ActionResult<Computer>> DeleteComputer(int id) {
-            var computer = await _context.Computers.FindAsync(id);
+            var computer = await _Context.Computers.FindAsync(id);
             if (computer == null) {
                 return NotFound();
             }
 
-            _context.Computers.Remove(computer);
-            await _context.SaveChangesAsync();
+            _Context.Computers.Remove(computer);
+            await _Context.SaveChangesAsync();
 
             return computer;
         }
 
         private bool ComputerExists(int id) {
-            return _context.Computers.Any(e => e.ID == id);
+            return _Context.Computers.Any(e => e.ID == id);
         }
     }
 }

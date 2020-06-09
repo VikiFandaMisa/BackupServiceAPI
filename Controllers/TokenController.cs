@@ -37,13 +37,13 @@ namespace BackupServiceAPI.Controllers {
 
         [AllowAnonymous]
         [HttpPost("user")]
-        public IActionResult CreateTokenUser([FromBody]Login login) {
+        public IActionResult CreateTokenUser([FromBody] Login login) {
             IActionResult response = Unauthorized();
 
-            Account user = _AuthenticateAccount(login);
+            var user = AuthenticateAccount(login);
 
             if (user != null) {
-                string tokenString = _BuildToken(GetClaims("user", user.ID));
+                var tokenString = _BuildToken(GetClaims("user", user.ID));
                 response = Ok(new { token = tokenString });
             }
 
@@ -52,13 +52,13 @@ namespace BackupServiceAPI.Controllers {
 
         [AllowAnonymous]
         [HttpPost("computer")]
-        public IActionResult CreateTokenComputer([FromBody]LoginComputer login) {
+        public IActionResult CreateTokenComputer([FromBody] LoginComputer login) {
             IActionResult response = Unauthorized();
 
-            Computer computer = _AuthenticateComputer(login);
+            var computer = AuthenticateComputer(login);
 
             if (computer != null) {
-                string tokenString = _BuildToken(GetClaims("computer", computer.ID));
+                var tokenString = _BuildToken(GetClaims("computer", computer.ID));
                 response = Ok(new { token = tokenString });
             }
 
@@ -66,10 +66,10 @@ namespace BackupServiceAPI.Controllers {
         }
 
         private string _BuildToken(Claim[] claims) {
-            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_Configuration["JWT:Key"]));
-            SigningCredentials creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_Configuration["JWT:Key"]));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
-            JwtSecurityToken token = new JwtSecurityToken(
+            var token = new JwtSecurityToken(
                 _Configuration["Jwt:Issuer"],
                 _Configuration["Jwt:Issuer"],
                 claims,
@@ -81,19 +81,19 @@ namespace BackupServiceAPI.Controllers {
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        
+
         private Claim[] GetClaims(string type, int id) {
             return new Claim[] {
                 new Claim(JwtRegisteredClaimNames.Sub, type + ':' + id.ToString())
             };
         }
 
-        private Account _AuthenticateAccount(Login login) {
-            string passwordHash = _PasswordHelper.CreatePasswordHash(login.Password);
+        private Account AuthenticateAccount(Login login) {
+            var passwordHash = _PasswordHelper.CreatePasswordHash(login.Password);
             return _Context.Accounts.SingleOrDefault(a => a.Email == login.Email && a.Password == passwordHash);
         }
 
-        private Computer _AuthenticateComputer(LoginComputer login) {
+        private Computer AuthenticateComputer(LoginComputer login) {
             return _Context.Computers.SingleOrDefault(a => a.ID == login.ID);
         }
     }

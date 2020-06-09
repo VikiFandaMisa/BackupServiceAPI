@@ -8,15 +8,15 @@ namespace BackupServiceAPI.Models {
         Info = 2,
         Job = 3
     }
-    
+
     public class LogItem {
         [Key]
-        public int ID {get; set;}
+        public int ID { get; set; }
         [ForeignKey("JobsID")]
-        public int? JobID {get; set;}
-        public MessageType Type {get; set;}
-        public DateTime Date {get; set;}
+        public int? JobID { get; set; }
+        public MessageType Type { get; set; }
+        public DateTime Date { get; set; }
         [MaxLength(256)]
-        public string Message {get; set;}
+        public string Message { get; set; }
     }
 }

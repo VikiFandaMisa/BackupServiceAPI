@@ -1,19 +1,19 @@
 param (
-    [Parameter(Mandatory=$true)][string]$dbServer,
-    [Parameter(Mandatory=$true)][string]$dbDatabase,
-    [Parameter(Mandatory=$true)][string]$dbUsername,
-    [Parameter(Mandatory=$true)][string]$dbPassword,
-    [Parameter(Mandatory=$true)][string]$smtpHost,
-    [Parameter(Mandatory=$true)][string]$smtpPort,
-    [Parameter(Mandatory=$true)][string]$smtpEmail,
-    [Parameter(Mandatory=$true)][string]$smtpPassword,
-    [int]$keyLength = 256
- )
+  [Parameter(Mandatory = $true)][string]$dbServer,
+  [Parameter(Mandatory = $true)][string]$dbDatabase,
+  [Parameter(Mandatory = $true)][string]$dbUsername,
+  [Parameter(Mandatory = $true)][string]$dbPassword,
+  [Parameter(Mandatory = $true)][string]$smtpHost,
+  [Parameter(Mandatory = $true)][string]$smtpPort,
+  [Parameter(Mandatory = $true)][string]$smtpEmail,
+  [Parameter(Mandatory = $true)][string]$smtpPassword,
+  [int]$keyLength = 256
+)
 
 $key = $null
 
 for ( $i = 1; $i -le $keyLength; $i++) {
-    $key += ( -join ((48..57) + (65..90) + (97..122) | Get-Random | % {[char]$_}) )
+  $key += ( -join ((48..57) + (65..90) + (97..122) | Get-Random | % { [char]$_ }) )
 }
 
 $json = '{

@@ -4,56 +4,47 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
 
-namespace BackupServiceAPI.Services
-{
-    public abstract class BackgroundService : IHostedService, IDisposable
-    {
-        private Task _executingTask;
-        private readonly CancellationTokenSource _stoppingCts =
+namespace BackupServiceAPI.Services {
+    public abstract class BackgroundService : IHostedService, IDisposable {
+        private Task _ExecutingTask;
+        private readonly CancellationTokenSource _StoppingCts =
                                                        new CancellationTokenSource();
 
         protected abstract Task ExecuteAsync(CancellationToken stoppingToken);
 
-        public virtual Task StartAsync(CancellationToken cancellationToken)
-        {
+        public virtual Task StartAsync(CancellationToken cancellationToken) {
             // Store the task we're executing
-            _executingTask = ExecuteAsync(_stoppingCts.Token);
+            _ExecutingTask = ExecuteAsync(_StoppingCts.Token);
 
             // If the task is completed then return it,
             // this will bubble cancellation and failure to the caller
-            if (_executingTask.IsCompleted)
-            {
-                return _executingTask;
+            if (_ExecutingTask.IsCompleted) {
+                return _ExecutingTask;
             }
 
             // Otherwise it's running
             return Task.CompletedTask;
         }
 
-        public virtual async Task StopAsync(CancellationToken cancellationToken)
-        {
+        public virtual async Task StopAsync(CancellationToken cancellationToken) {
             // Stop called without start
-            if (_executingTask == null)
-            {
+            if (_ExecutingTask == null) {
                 return;
             }
 
-            try
-            {
+            try {
                 // Signal cancellation to the executing method
-                _stoppingCts.Cancel();
+                _StoppingCts.Cancel();
             }
-            finally
-            {
+            finally {
                 // Wait until the task completes or the stop token triggers
-                await Task.WhenAny(_executingTask, Task.Delay(Timeout.Infinite,
+                await Task.WhenAny(_ExecutingTask, Task.Delay(Timeout.Infinite,
                                                               cancellationToken));
             }
         }
 
-        public virtual void Dispose()
-        {
-            _stoppingCts.Cancel();
+        public virtual void Dispose() {
+            _StoppingCts.Cancel();
         }
     }
 }

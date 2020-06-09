@@ -10,21 +10,17 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
-namespace BackupServiceAPI.Services
-{
-    public class MailService : BackgroundService
-    {
-        private SmtpClient _SmtpClient = new SmtpClient();
-        private DbBackupServiceContext _Context { get; set; }
-        private readonly IServiceScopeFactory ScopeFactory;
+namespace BackupServiceAPI.Services {
+    public class MailService : BackgroundService {
+        private readonly SmtpClient _SmtpClient = new SmtpClient();
+        private DbBackupServiceContext _Context;
+        private readonly IServiceScopeFactory _ScopeFactory;
         private readonly IConfiguration _Configuration;
-        private Timer _Timer;
         public string Email { get; set; }
 
-        public MailService(IServiceScopeFactory scopeFactory, IConfiguration configuration)
-        {
-            this.ScopeFactory = scopeFactory;
-            this._Configuration = configuration;
+        public MailService(IServiceScopeFactory scopeFactory, IConfiguration configuration) {
+            _ScopeFactory = scopeFactory;
+            _Configuration = configuration;
 
             _SmtpClient.Host = _Configuration["SMTP:Host"];
             _SmtpClient.Port = Convert.ToInt32(_Configuration["SMTP:Port"]);
@@ -32,29 +28,23 @@ namespace BackupServiceAPI.Services
             _SmtpClient.Credentials = new NetworkCredential(_Configuration["SMTP:Email"], _Configuration["SMTP:Password"]);
             _SmtpClient.EnableSsl = true;
         }
-        protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-        {
-            _Timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(432000));
+        protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
+            new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(432000));
         }
-        private void DoWork(object state)
-        {
-            using (var scope = ScopeFactory.CreateScope())
-            {
+        private void DoWork(object state) {
+            using (var scope = _ScopeFactory.CreateScope()) {
                 _Context = scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>();
-                MailMessage toSend = WriteMail();
-                List<string> accounts = new List<string>();
-                foreach (var Account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList())
-                {
-                    if (Account.Admin)
-                        toSend.To.Add(Account.Email);
+                var toSend = WriteMail();
+                var accounts = new List<string>();
+                foreach (var account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList()) {
+                    if (account.Admin)
+                        toSend.To.Add(account.Email);
                 }
                 _SmtpClient.Send(toSend);
             }
         }
-        public MailMessage WriteMail()
-        {
-            var mailMessage = new MailMessage
-            {
+        public MailMessage WriteMail() {
+            var mailMessage = new MailMessage {
                 From = new MailAddress(Email),
                 Subject = "Report for today: " + DateTime.Now,
                 Body = GetHtmlBody(),
@@ -63,36 +53,33 @@ namespace BackupServiceAPI.Services
             return mailMessage;
         }
 
-         public string GetHtmlBody ()
-        {              
-            DateTime now = DateTime.Now;  
+        public string GetHtmlBody() {
+            var now = DateTime.Now;
 
-            string Body ="";
-              
-            Body += "<h1>Good day sir</h1> <h2  > Report for today " + now + "</h2><br><h3>reports:</h3><br>";  
-           
-            foreach (LogItem p in GetLogs())
-            {
-                Body += @"Client: "  + GetHostname(Convert.ToInt32(p.JobID)) + "&#160&#160&#160 " +  "   Template: "+ GetTemplateName(Convert.ToInt32(p.JobID)) +" &#160 &#160 &#160  Log message: " + p.Message + " &#160 &#160 &#160  Date of log: " + p.Date.Date  + "<br><br>";                
+            var body = "";
+
+            body += "<h1>Good day sir</h1> <h2  > Report for today " + now + "</h2><br><h3>reports:</h3><br>";
+
+            foreach (LogItem p in GetLogs()) {
+                body += @"Client: " + GetHostname(Convert.ToInt32(p.JobID)) + "&#160&#160&#160 " + "   Template: " + GetTemplateName(Convert.ToInt32(p.JobID)) + " &#160 &#160 &#160  Log message: " + p.Message + " &#160 &#160 &#160  Date of log: " + p.Date.Date + "<br><br>";
             }
 
-            Body +=" <br><h3>DeadClients:</h3><br>";
+            body += " <br><h3>DeadClients:</h3><br>";
 
-            foreach (Computer p in GetDeadComputers())
-            {
-                Body += "Klient " + p.Hostname + "is Dead <br>";
+            foreach (var c in GetDeadComputers()) {
+                body += "Klient " + c.Hostname + "is Dead <br>";
             }
 
-            Body +=" <br><h3>NewClients:</h3><br>";
+            body += " <br><h3>NewClients:</h3><br>";
 
-            foreach(Computer p in GetComputers())            {
-                
-                Body += "Client: " +  p.Hostname +"<br>";
-            }            
+            foreach (var c in GetComputers()) {
 
-            return Body;
+                body += "Client: " + c.Hostname + "<br>";
+            }
 
-            
+            return body;
+
+
         }
         private Computer[] GetComputers() {
             return _Context.Computers.ToArray();
@@ -116,37 +103,37 @@ namespace BackupServiceAPI.Services
 
 
 
-        private string GetTemplateName(int JobID) {            
-            
+        private string GetTemplateName(int JobID) {
+
             var a = _Context.Jobs.FromSqlRaw(@"
                 SELECT *
                 FROM Jobs p
                 WHERE ID = " + JobID
             ).ToArray();
 
-            var b =_Context.Templates.FromSqlRaw(@"
+            var b = _Context.Templates.FromSqlRaw(@"
             SELECT *
             FROM Templates p
             WHERE ID = " + a[0].TemplateID
-            ).ToArray(); 
+            ).ToArray();
 
             return b[0].Name;
         }
 
-        private string GetHostname(int JobID) {            
+        private string GetHostname(int JobID) {
             var a = _Context.Jobs.FromSqlRaw(@"
                 SELECT *
                 FROM Jobs p
                 WHERE ID = " + JobID
             ).ToArray();
 
-            var b =_Context.Computers.FromSqlRaw(@"
+            var b = _Context.Computers.FromSqlRaw(@"
             SELECT *
             FROM Computers p
             WHERE ID = " + a[0].ComputerID
-            ).ToArray();  
+            ).ToArray();
 
-            return b[0].Hostname; 
+            return b[0].Hostname;
         }
     }
 }

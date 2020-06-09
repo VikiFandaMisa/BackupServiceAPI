@@ -56,10 +56,10 @@ namespace BackupServiceAPI {
                         IssuerSigningKey = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_Configuration["JWT:Key"]))
                     };
                 });
-            
+
             services.AddAuthorization(options => {
                 options.AddPolicy("UsersOnly", policy =>
-                    policy.RequireAssertion(context => 
+                    policy.RequireAssertion(context =>
                         context.User.HasClaim(c => c.Type == ClaimTypes.NameIdentifier) &&
                         context.User.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':')[0] == "user"
                     )
@@ -71,7 +71,7 @@ namespace BackupServiceAPI {
                     )
                 );
             });
-            
+
             services.AddCors(options => {
                 options.AddPolicy("CORSPolicy",
                     builder => builder.AllowAnyOrigin()
@@ -85,7 +85,7 @@ namespace BackupServiceAPI {
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {   
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env) {
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }

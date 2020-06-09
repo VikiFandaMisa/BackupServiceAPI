@@ -1,10 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace BackupServiceAPI.Models
-{
-    public class DbBackupServiceContext : DbContext
-    {
+namespace BackupServiceAPI.Models {
+    public class DbBackupServiceContext : DbContext {
         public DbBackupServiceContext(DbContextOptions<DbBackupServiceContext> options) : base(options) { }
         public DbSet<Job> Jobs { get; set; }
         public DbSet<LogItem> Log { get; set; }
@@ -22,7 +20,7 @@ namespace BackupServiceAPI.Models
                 .Entity<Computer>()
                 .Property(e => e.Status)
                 .HasConversion(new EnumToStringConverter<ComputerStatus>());
-            
+
             // Template
             modelBuilder
                 .Entity<Template>()
@@ -33,7 +31,7 @@ namespace BackupServiceAPI.Models
                 .Entity<Template>()
                 .Property(e => e.TargetFileType)
                 .HasConversion(new EnumToStringConverter<BackupFileType>());
-            
+
             // Log
             modelBuilder
                 .Entity<LogItem>()
