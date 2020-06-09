@@ -13,7 +13,7 @@ param (
 $key = $null
 
 for ( $i = 1; $i -le $keyLength; $i++) {
-  $key += ( -join ((48..57) + (65..90) + (97..122) | Get-Random | % { [char]$_ }) )
+  $key += ( -join ((48..57) + (65..90) + (97..122) | Get-Random | ForEach-Object { [char]$_ }) )
 }
 
 $json = '{
