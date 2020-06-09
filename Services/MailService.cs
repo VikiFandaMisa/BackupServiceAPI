@@ -29,19 +29,18 @@ namespace BackupServiceAPI.Services {
             _SmtpClient.EnableSsl = true;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-            new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(432000));
+            new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromDays(432000));
         }
         private void DoWork(object state) {
-            using (var scope = _ScopeFactory.CreateScope()) {
-                _Context = scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>();
-                var toSend = WriteMail();
-                var accounts = new List<string>();
-                foreach (var account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList()) {
-                    if (account.Admin)
-                        toSend.To.Add(account.Email);
-                }
-                _SmtpClient.Send(toSend);
+            using var scope = _ScopeFactory.CreateScope();
+            _Context = scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>();
+            var toSend = WriteMail();
+            var accounts = new List<string>();
+            foreach (var account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList()) {
+                if (account.Admin)
+                    toSend.To.Add(account.Email);
             }
+            _SmtpClient.Send(toSend);
         }
         public MailMessage WriteMail() {
             var mailMessage = new MailMessage {
@@ -60,7 +59,7 @@ namespace BackupServiceAPI.Services {
 
             body += "<h1>Good day sir</h1> <h2  > Report for today " + now + "</h2><br><h3>reports:</h3><br>";
 
-            foreach (LogItem p in GetLogs()) {
+            foreach (var p in GetLogs()) {
                 body += @"Client: " + GetHostname(Convert.ToInt32(p.JobID)) + "&#160&#160&#160 " + "   Template: " + GetTemplateName(Convert.ToInt32(p.JobID)) + " &#160 &#160 &#160  Log message: " + p.Message + " &#160 &#160 &#160  Date of log: " + p.Date.Date + "<br><br>";
             }
 
@@ -103,12 +102,12 @@ namespace BackupServiceAPI.Services {
 
 
 
-        private string GetTemplateName(int JobID) {
+        private string GetTemplateName(int jobID) {
 
             var a = _Context.Jobs.FromSqlRaw(@"
                 SELECT *
                 FROM Jobs p
-                WHERE ID = " + JobID
+                WHERE ID = " + jobID
             ).ToArray();
 
             var b = _Context.Templates.FromSqlRaw(@"
@@ -120,11 +119,11 @@ namespace BackupServiceAPI.Services {
             return b[0].Name;
         }
 
-        private string GetHostname(int JobID) {
+        private string GetHostname(int jobID) {
             var a = _Context.Jobs.FromSqlRaw(@"
                 SELECT *
                 FROM Jobs p
-                WHERE ID = " + JobID
+                WHERE ID = " + jobID
             ).ToArray();
 
             var b = _Context.Computers.FromSqlRaw(@"

@@ -22,7 +22,7 @@ namespace BackupServiceAPI.Controllers {
             var templates = await _Context.Templates.ToListAsync();
 
             var templateOut = new TemplateOut[templates.Count];
-            for (int i = 0; i < templates.Count; i++)
+            for (var i = 0; i < templates.Count; i++)
                 templateOut[i] = TemplateToTemplateOut(templates[i]);
 
             return templateOut;
@@ -69,7 +69,7 @@ namespace BackupServiceAPI.Controllers {
                 }
             }
 
-            foreach (Path deleted in storedPaths) {
+            foreach (var deleted in storedPaths) {
                 _Context.Paths.Remove(deleted);
             }
 

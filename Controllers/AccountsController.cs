@@ -55,7 +55,7 @@ namespace BackupServiceAPI.Controllers {
             if (!(requestor.Admin || id == requestor.ID))
                 return Unauthorized();
 
-            Account account = await _Context.Accounts.FindAsync(id);
+            var account = await _Context.Accounts.FindAsync(id);
 
             if (account == null) {
                 return NotFound();
@@ -120,7 +120,7 @@ namespace BackupServiceAPI.Controllers {
             if (!requestor.Admin)
                 return Unauthorized();
 
-            Account account = await _Context.Accounts.FindAsync(id);
+            var account = await _Context.Accounts.FindAsync(id);
             if (account == null) {
                 return NotFound();
             }
@@ -140,7 +140,7 @@ namespace BackupServiceAPI.Controllers {
             return account;
         }
         private static List<Account> RemovePasswords(List<Account> accounts) {
-            for (int i = 0; i < accounts.Count; i++)
+            for (var i = 0; i < accounts.Count; i++)
                 accounts[i] = RemovePassword(accounts[i]);
 
             return accounts;

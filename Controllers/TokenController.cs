@@ -43,7 +43,7 @@ namespace BackupServiceAPI.Controllers {
             var user = AuthenticateAccount(login);
 
             if (user != null) {
-                var tokenString = _BuildToken(GetClaims("user", user.ID));
+                var tokenString = BuildToken(GetClaims("user", user.ID));
                 response = Ok(new { token = tokenString });
             }
 
@@ -58,14 +58,14 @@ namespace BackupServiceAPI.Controllers {
             var computer = AuthenticateComputer(login);
 
             if (computer != null) {
-                var tokenString = _BuildToken(GetClaims("computer", computer.ID));
+                var tokenString = BuildToken(GetClaims("computer", computer.ID));
                 response = Ok(new { token = tokenString });
             }
 
             return response;
         }
 
-        private string _BuildToken(Claim[] claims) {
+        private string BuildToken(Claim[] claims) {
             var key = new SymmetricSecurityKey(Encoding.ASCII.GetBytes(_Configuration["JWT:Key"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

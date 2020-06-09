@@ -61,7 +61,7 @@ namespace BackupServiceAPI.Services {
         public async Task<dynamic> GetTokenOwner() {
             var user = _HttpContextAccessor.HttpContext.User;
             if (user.HasClaim(c => c.Type == ClaimTypes.NameIdentifier)) {
-                string[] identifier = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':');
+                var identifier = user.Claims.First(c => c.Type == ClaimTypes.NameIdentifier).Value.Split(':');
                 var type = identifier[0];
                 var id = Convert.ToInt32(identifier[1]);
 
