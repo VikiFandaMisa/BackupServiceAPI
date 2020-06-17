@@ -49,11 +49,7 @@ namespace BackupServiceAPI.Controllers {
 
             _Context.Entry(unpacked.Item1).State = EntityState.Modified;
 
-            var storedPaths = _Context.Paths.FromSqlRaw(@"
-                SELECT *
-                FROM Paths p
-                WHERE TemplateID = " + unpacked.Item1.ID
-            ).ToList();
+            var storedPaths = _Context.Paths.AsNoTracking().Where(path => path.TemplateID == unpacked.Item1.ID).ToList();
 
             foreach (var p in unpacked.Item2) {
                 var stored = false;
