@@ -29,7 +29,7 @@ namespace BackupServiceAPI.Services {
             _SmtpClient.EnableSsl = true;
         }
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {
-            new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromDays(432000));
+            new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromDays(1));
         }
         private void DoWork(object state) {
             using var scope = _ScopeFactory.CreateScope();
