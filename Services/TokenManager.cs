@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using System.Security.Claims;
 
 using BackupServiceAPI.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackupServiceAPI.Services {
     public interface ITokenManager {
@@ -66,11 +67,11 @@ namespace BackupServiceAPI.Services {
                 var id = Convert.ToInt32(identifier[1]);
 
                 if (type == "user") {
-                    return await _Context.Accounts.FindAsync(id);
+                    return await _Context.Accounts.AsNoTracking().SingleOrDefaultAsync(item => item.ID == id);
                 }
 
                 if (type == "computer") {
-                    return await _Context.Computers.FindAsync(id);
+                    return await _Context.Computers.AsNoTracking().SingleOrDefaultAsync(item => item.ID == id);
                 }
             }
             return null;
