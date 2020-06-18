@@ -162,15 +162,7 @@ namespace BackupServiceAPI.Controllers {
 
             return schedule;
         }
-
-        private string PeriodCron()
-        {
-            
-            string cron="s";
-
-
-            return cron;
-        }
+        
 
         private string Periodcron(int type,int value)
         {

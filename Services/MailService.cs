@@ -71,7 +71,7 @@ namespace BackupServiceAPI.Services
             body += "<body><h2>Reports:</h2><table>  <tr>    <th>Client</th>    <th>Template</th>    <th>Log message</th>    <th>Date of log</th>  </tr>";
             foreach (var p in GetLogs())
             {
-                body += @"<tr>" + "<td>" + GetHostname(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + GetTemplateName(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + p.Message + "</td>" + "<td>" + p.Date.Date;
+                body += @"<tr>" + "<td>" + GetHostname(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + GetTemplateName(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + p.Message + "</td>" + "<td>" + p.Date;
             }
             body += "</table>";
 
