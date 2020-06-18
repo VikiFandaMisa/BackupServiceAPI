@@ -74,7 +74,7 @@ namespace BackupServiceAPI.Controllers {
             if (!(requestor.Admin || account.ID == requestor.ID))
                 return Unauthorized();
 
-            if (account.Password != "")
+            if (account.Password != "" && account.ID == requestor.ID)
                 account.Password = _PasswordHelper.CreatePasswordHash(account.Password);
             else
                 await ReturnPassword(account);
@@ -147,7 +147,7 @@ namespace BackupServiceAPI.Controllers {
         }
         private async Task<Account> ReturnPassword(Account account) {
             account.Password = (
-                await _Context.Accounts.FindAsync(account.ID)
+                await _Context.Accounts.AsNoTracking().SingleOrDefaultAsync(item => item.ID == account.ID)
             ).Password;
             return account;
         }
