@@ -4,13 +4,13 @@ namespace BackupServiceAPI.Models {
     [NotMapped]
     public class PathOut {
         public int ID { get; set; }
-        public string Network { get; set; }
+        public NetworkSettings Network { get; set; }
         public string Directory { get; set; }
 
         public static PathOut FromPath(Path path) {
             return new PathOut() {
                 ID = path.ID,
-                Network = path.Network,
+                Network = path.Network != null && path.Network != "" ? NetworkSettings.FromJson(path.Network) : null,
                 Directory = path.Directory
             };
         }
@@ -19,7 +19,7 @@ namespace BackupServiceAPI.Models {
             return new Path() {
                 ID = ID,
                 TemplateID = templateID,
-                Network = Network,
+                Network = Network?.ToJson(),
                 Source = source,
                 Directory = Directory
             };

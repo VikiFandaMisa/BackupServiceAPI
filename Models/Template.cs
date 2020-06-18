@@ -3,14 +3,14 @@ using System.ComponentModel.DataAnnotations;
 
 namespace BackupServiceAPI.Models {
     public enum BackupType {
-        full = 1,
-        differential = 2,
-        incremental = 3
+        Full = 1,
+        Differential = 2,
+        Incremental = 3
     }
 
     public enum BackupFileType {
-        plain = 1,
-        zip = 2
+        Plain = 1,
+        Zip = 2
     }
 
     public class Template {
