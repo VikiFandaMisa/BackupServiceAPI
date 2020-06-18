@@ -9,6 +9,19 @@ using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
 
 namespace BackupServiceAPI.Services
 {
@@ -24,7 +37,6 @@ namespace BackupServiceAPI.Services
         {
             _ScopeFactory = scopeFactory;
             _Configuration = configuration;
-
             _SmtpClient.Host = _Configuration["SMTP:Host"];
             _SmtpClient.Port = Convert.ToInt32(_Configuration["SMTP:Port"]);
             Email = _Configuration["SMTP:Email"];
@@ -44,7 +56,10 @@ namespace BackupServiceAPI.Services
             foreach (var account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList())
             {
                 if (account.Admin)
-                    toSend.To.Add(account.Email);
+                    try {
+                        toSend.To.Add(account.Email);
+                    }
+                    catch (Exception e) {}
             }
             _SmtpClient.Send(toSend);
         }
