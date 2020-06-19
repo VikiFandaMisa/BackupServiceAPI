@@ -67,11 +67,11 @@ namespace BackupServiceAPI.Services {
                 var id = Convert.ToInt32(identifier[1]);
 
                 if (type == "user") {
-                    return await _Context.Accounts.AsNoTracking().SingleOrDefaultAsync(item => item.ID == id);
+                    return await _Context.Accounts.AsNoTracking().SingleAsync(item => item.ID == id);
                 }
 
                 if (type == "computer") {
-                    return await _Context.Computers.AsNoTracking().SingleOrDefaultAsync(item => item.ID == id);
+                    return await _Context.Computers.AsNoTracking().SingleAsync(item => item.ID == id);
                 }
             }
             return null;

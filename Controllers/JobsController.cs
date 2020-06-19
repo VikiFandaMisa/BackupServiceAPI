@@ -163,47 +163,31 @@ namespace BackupServiceAPI.Controllers {
             return schedule;
         }
 
-        private string PeriodCron()
-        {
-            
-            string cron="s";
-
-
+        private string PeriodCron(int type, int value) {
+            var cron = "";
+            if (type == 1) {
+                cron = "*/" + value + "* * * *";
+            }
+            else if (type == 2) {
+                cron = "0 */" + value + " * * *";
+            }
+            else if (type == 3) {
+                cron = "0 0 " + "*/" + value + " * *";
+            }
+            else if (type == 4) {
+                cron = "0 0 1 " + "*/" + value + " *";
+            }
             return cron;
         }
 
-        private string Periodcron(int type,int value)
-        {
-            string cron="";
-            if (type==1) {
-            cron = "*/" + value +"* * * *";
-            }
-            if (type==2) {
-            cron = "0 */"+value+" * * *";
-            }
-            if (type==3) {
-            cron = "0 0 "+"*/"+value +" * *";
-            }
-            if (type==4) {
-            cron = "0 0 1 "+"*/"+value +" *";
-            }
-           
-            return cron;
-        }
-
-        private string Weekcron(int[] days,int hours,int minutes) 
-        {
-            string cron="";
+        private string WeekCron(int[] days, int hours, int minutes) {
+            string cron;
             cron = minutes + " " + hours + " * * ";
-            foreach (int day in days)
-            {
-             cron+=day+",";   
+            foreach (var day in days) {
+                cron += day + ",";
             }
-            cron.Substring(0,cron.Length-1);
+            cron = cron[0..^1];
             return cron;
         }
-
-
-
     }
 }
