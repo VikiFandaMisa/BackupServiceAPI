@@ -9,6 +9,19 @@ using System;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
+using System.Linq;
+using System.Security.Claims;
+using System.Text;
 
 namespace BackupServiceAPI.Services {
     public class MailService : BackgroundService {
@@ -21,7 +34,6 @@ namespace BackupServiceAPI.Services {
         public MailService(IServiceScopeFactory scopeFactory, IConfiguration configuration) {
             _ScopeFactory = scopeFactory;
             _Configuration = configuration;
-
             _SmtpClient.Host = _Configuration["SMTP:Host"];
             _SmtpClient.Port = Convert.ToInt32(_Configuration["SMTP:Port"]);
             Email = _Configuration["SMTP:Email"];
@@ -38,7 +50,10 @@ namespace BackupServiceAPI.Services {
             var accounts = new List<string>();
             foreach (var account in scope.ServiceProvider.GetRequiredService<DbBackupServiceContext>().Accounts.ToList()) {
                 if (account.Admin)
-                    toSend.To.Add(account.Email);
+                    try {
+                        toSend.To.Add(account.Email);
+                    }
+                    catch (Exception e) { }
             }
             _SmtpClient.Send(toSend);
         }
@@ -61,7 +76,7 @@ namespace BackupServiceAPI.Services {
             body += "<html><head><style>table {  font-family: arial, sans-serif;  border-collapse: collapse;  width: 100%;}td, th {  border: 1px solid #dddddd;  text-align: left;  padding: 8px;}  th{color:white; background-color: #378BC8 } ;</style></head>";
             body += "<body><h2>Reports:</h2><table>  <tr>    <th>Client</th>    <th>Template</th>    <th>Log message</th>    <th>Date of log</th>  </tr>";
             foreach (var p in GetLogs()) {
-                body += @"<tr>" + "<td>" + GetHostname(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + GetTemplateName(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + p.Message + "</td>" + "<td>" + p.Date.Date;
+                body += @"<tr>" + "<td>" + GetHostname(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + GetTemplateName(Convert.ToInt32(p.JobID)) + "</td>" + "<td>" + p.Message + "</td>" + "<td>" + p.Date;
             }
             body += "</table>";
 
@@ -101,12 +116,6 @@ namespace BackupServiceAPI.Services {
                 where DATEDIFF(NOW(),LastSeen) > 15"
             ).ToArray();
         }
-
-
-
-
-
-
 
         private string GetTemplateName(int jobID) {
 
