@@ -23,5 +23,39 @@ namespace BackupServiceAPI.Models {
         public string ToJson() {
             return JsonSerializer.Serialize(this, typeof(Period));
         }
+
+        public string GetCron() {
+            if (PeriodMode)
+                return PeriodCron();
+            else
+                return WeekCron();
+        }
+
+        private string PeriodCron() {
+            var cron = "";
+            if (Unit == 1) {
+                cron = "*/" + Value + " * * * *";
+            }
+            else if (Unit == 2) {
+                cron = "0 */" + Value + " * * *";
+            }
+            else if (Unit == 3) {
+                cron = "0 0 " + "*/" + Value + " * *";
+            }
+            else if (Unit == 4) {
+                cron = "0 0 1 " + "*/" + Value + " *";
+            }
+            return cron;
+        }
+
+        private string WeekCron() {
+            string cron;
+            cron = Time.Minutes + " " + Time.Hours + " * * ";
+            foreach (var day in Days) {
+                cron += day + ",";
+            }
+            cron = cron[0..^1];
+            return cron;
+        }
     }
 }

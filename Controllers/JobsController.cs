@@ -50,6 +50,11 @@ namespace BackupServiceAPI.Controllers {
         public async Task<ActionResult<JobOut[]>> GetComputerJobs() {
             Computer requestor = await _TokenManager.GetTokenOwner();
 
+            requestor.LastSeen = DateTime.Now;
+            _Context.Entry(requestor).State = EntityState.Modified;
+
+            await _Context.SaveChangesAsync();
+
             var templates = _Context.Templates.FromSqlRaw(@"
                 SELECT t.*
                 FROM Templates t
@@ -59,7 +64,7 @@ namespace BackupServiceAPI.Controllers {
 
             var jobsOut = new JobOut[templates.Length];
             for (var i = 0; i < templates.Length; i++) {
-                var schedule = GetSchedule(templates[i].Period, templates[i].Start, templates[i].End);
+                var schedule = GetSchedule(Period.FromJson(templates[i].Period).GetCron(), templates[i].Start, templates[i].End);
                 var templateReturn = JobOut.FromTemplate(templates[i], 0, schedule); //LOL FIX THIS LATER
                 jobsOut[i] = templateReturn;
 
@@ -144,12 +149,10 @@ namespace BackupServiceAPI.Controllers {
         }
 
         private List<DateTime> GetSchedule(string cron, DateTime start, DateTime end) {
+            System.Console.WriteLine(cron);
             var schedule = new List<DateTime>();
             var scheduleLength = Convert.ToInt32(_Configuration["Jobs:ScheduleLength"]);
             var crontab = CrontabSchedule.Parse(cron);
-
-            if (DateTime.Now > start)
-                start = crontab.GetNextOccurrences(start, DateTime.Now).Last();
 
             for (var i = 0; i < scheduleLength; i++) {
                 var add = crontab.GetNextOccurrence(start);
@@ -161,33 +164,6 @@ namespace BackupServiceAPI.Controllers {
             }
 
             return schedule;
-        }
-
-        private string PeriodCron(int type, int value) {
-            var cron = "";
-            if (type == 1) {
-                cron = "*/" + value + "* * * *";
-            }
-            else if (type == 2) {
-                cron = "0 */" + value + " * * *";
-            }
-            else if (type == 3) {
-                cron = "0 0 " + "*/" + value + " * *";
-            }
-            else if (type == 4) {
-                cron = "0 0 1 " + "*/" + value + " *";
-            }
-            return cron;
-        }
-
-        private string WeekCron(int[] days, int hours, int minutes) {
-            string cron;
-            cron = minutes + " " + hours + " * * ";
-            foreach (var day in days) {
-                cron += day + ",";
-            }
-            cron = cron[0..^1];
-            return cron;
         }
     }
 }
